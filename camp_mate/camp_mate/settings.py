@@ -27,6 +27,7 @@ DEBUG = True
 
 ALLOWED_HOSTS = [
       'editor-advsedjango-5.devedu.io',
+      '127.0.0.1',
 ]
 
 

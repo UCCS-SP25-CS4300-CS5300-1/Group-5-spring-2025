@@ -1,0 +1,50 @@
+ /* Light and Dark mode styles */
+ body {
+    background-color: #ffffff;
+    color: #000000;
+}
+
+.card {
+    background-color: #f8f9fa;
+    color: #212529;
+}
+
+    /* Dark mode styles */
+body.dark-mode {
+    background-color: #000000;
+    color: #ffffff;
+}
+
+body.dark-mode .card {
+    background-color: #343a40;
+    color: #ffffff;
+}
+
+#darkModeToggle {
+    width: 50px;
+    height: 50px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-right: 20px;
+}
+.bg-primary {
+    background-color: #407d64 !important;
+}
+
+.btn-primary {
+    --bs-btn-bg: #105c4a;
+    --bs-btn-border-color: #105c4a;;
+}
+
+.btn:hover {
+    background-color: #dba33b;
+    border-color: #dba33b;
+}
+
+h1 {
+    font-family: "Poetsen One", sans-serif;
+    font-weight: 400;
+    font-style: normal;
+    font-size: 40pt;
+}
