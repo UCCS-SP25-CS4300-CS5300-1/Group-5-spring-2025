@@ -38,8 +38,8 @@ body.dark-mode .card {
 }
 
 .btn:hover {
-    background-color: #dba33b;
-    border-color: #dba33b;
+    background-color: #ff930e;
+    border-color: #ff930e;
 }
 
 h1 {
@@ -47,4 +47,9 @@ h1 {
     font-weight: 400;
     font-style: normal;
     font-size: 40pt;
+}
+
+.header-bg {
+    background: url('../images/cm_bg_v3.png') no-repeat center center;
+    background-size: cover;
 }

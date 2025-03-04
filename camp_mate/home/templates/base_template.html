@@ -17,16 +17,18 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Poetsen+One&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:ital,wght@0,200..1000;1,200..1000&display=swap" rel="stylesheet">
 
 </head>
 <body>
 
-<div class="container-fluid p-5 bg-primary text-white text-center">
+<div class="container-fluid p-5 bg-primary text-white text-center d-flex align-items-center justify-content-center">
     <h1>CampMate</h1>
+    <img src="{% static 'images/cm.png' %}" alt="CampMate Logo" width="65" height = "65" class="ms-3">
 </div>
 
 <!-- Navigation Bar -->
-<header class="p-3 mb-3 border-bottom">
+<header class="p-3 mb-3 border-bottom header-bg">
     <div class="container">
 
         <!-- Set design -->
@@ -38,7 +40,7 @@
         <div class="container d-flex justify-content-center align-items-center" style="height: 100px; position: relative;">
             <!-- Search Bar -->
             <form class="col-12 col-md-6 col-lg-4" role="search">
-                <input type="search" class="form-control text-center" placeholder="Search..." aria-label="Search">
+                <input type="search" class="form-control text-center" placeholder="Search For A Campsite..." aria-label="Search" style="font-family: Nunito, sans-serif; font-weight:400; font-style: normal;">
             </form>
         
             <!-- Dark Mode Toggle - Positioned on Top of Search Bar -->
@@ -47,19 +49,18 @@
                 <i id="darkModeIcon" class="fas fa-moon"></i>
             </button>
         </div>       
-
-                <!-- Dropdown bar and profile icon -->
-                <div class="dropdown text-end">
-                    <a href="https://www.youtube.com/watch?v=dQw4w9WgXcQ" class="d-block link-dark text-decoration-none dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
-                      <img src={% static 'images/lulz.png' %} alt="Menu" width="32" height="32" class="rounded-circle">
-                    </a>
-                    <!-- Profile login thingy/drop down menu -->
-                    <ul class="dropdown-menu text-small">
-                      <li><a class="dropdown-item" href="#">Login</a></li>
-                      <li><hr class="dropdown-divider"></li>
-                      <li><a class="dropdown-item" href="#">Make Account</a></li>
-                    </ul>
-                  </div>
+            <!-- Dropdown Menu Positioned at Top Right -->
+            <div class="dropdown" style="position: absolute; top: 20px; right: 15px; border-radius: 12px; padding: 10px; background-color: white;">
+                <a href="#" class="d-block link-dark text-decoration-none dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false" style="font-family: Nunito, sans-serif; font-weight: 400; font-style: normal; font-size: 18px">
+                  Menu
+                </a>
+                <!-- Profile login dropdown menu -->
+                <ul class="dropdown-menu text-small">
+                  <li><a class="dropdown-item" href="#" style="font-family: Nunito, sans-serif; font-weight: 400; font-style: normal;">Login</a></li>
+                  <li><hr class="dropdown-divider"></li>
+                  <li><a class="dropdown-item" href="#" style="font-family: Nunito, sans-serif; font-weight: 400; font-style: normal;">Make Account</a></li>
+                </ul>
+            </div>
 
 
       </div>
