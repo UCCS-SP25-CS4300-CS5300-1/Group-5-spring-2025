@@ -10,6 +10,6 @@
 <p><strong>Desc:</strong> {{ campsite.FacilityDescription|default:"N/A" }}</p>
 <p><strong>Contact Info:</strong> {{ campsite.FacilityPhone|default:"No contact information available" }}</p>
 
-<a href="{% url 'search' %}">Back to Search Results</a>
+<a href="{% url 'search' %}?q={{ request.GET.q }}">Back to Search Results</a>
 
 {% endblock %}

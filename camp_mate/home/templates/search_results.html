@@ -9,7 +9,7 @@
     <ul>
         {% for site in campsites %}
             <li>
-                <a href="{% url 'facility_detail' site.FacilityID %}">
+                <a href="{% url 'facility_detail' site.FacilityID %}?q={{ request.GET.q }}">
                     <strong>{{ site.FacilityName }}</strong> - {{ site.FacilityTypeDescription }}
                 </a>
             </li>
