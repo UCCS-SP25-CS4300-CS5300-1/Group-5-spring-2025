@@ -3,8 +3,17 @@
 {% load static %}
 
 
+ 
+
 <!-- Replace block content in base_template.html -->
 {% block content %}
+
+<div class="container d-flex justify-content-center align-items-center" style="height: 100px; position: relative;">
+    <!-- Search Bar -->
+    <form class="col-12 col-md-6 col-lg-4" role="search">
+        <input type="search" class="form-control text-center" placeholder="Search For A Campsite..." aria-label="Search" style="font-family: Nunito, sans-serif; font-weight:400; font-style: normal;">
+    </form>
+</div>   
 
 <div class="d-flex justify-content-center">
     <iframe src="https://www.google.com/maps/embed?pb=!1m14!1m8!1m3!1d3315140.529795199!2d-110.514057!3d44.585795000000005!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x5351e55555555555%3A0xaca8f930348fe1bb!2sYellowstone%20National%20Park!5e1!3m2!1sen!2sus!4v1741043294190!5m2!1sen!2sus" 
