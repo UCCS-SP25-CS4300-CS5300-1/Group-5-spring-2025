@@ -1,0 +1,15 @@
+<!-- inherit from base.html-->
+{% extends "base_template.html" %}
+{% load static %}
+<!-- Replace block content in base_template.html -->
+{% block content %}
+
+<h2>{{ campsite.FacilityName }}</h2>
+<p><strong>Location:</strong> {{ campsite.FacilityLatitude }}, {{ campsite.FacilityLongitude }}</p>
+<p><strong>Type:</strong> {{ campsite.FacilityTypeDescription }}</p>
+<p><strong>Desc:</strong> {{ campsite.FacilityDescription|default:"N/A" }}</p>
+<p><strong>Contact Info:</strong> {{ campsite.FacilityPhone|default:"No contact information available" }}</p>
+
+<a href="{% url 'search' %}">Back to Search Results</a>
+
+{% endblock %}

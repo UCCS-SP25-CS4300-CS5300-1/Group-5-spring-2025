@@ -9,9 +9,9 @@
     <ul>
         {% for site in campsites %}
             <li>
-              
+                <a href="{% url 'facility_detail' site.FacilityID %}">
                     <strong>{{ site.FacilityName }}</strong> - {{ site.FacilityTypeDescription }}
-                
+                </a>
             </li>
         {% endfor %}
     </ul>
