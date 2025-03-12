@@ -1,0 +1,22 @@
+<!-- inherit from base.html-->
+{% extends "base_template.html" %}
+{% load static %}
+
+
+<!-- Replace block content in base_template.html -->
+{% block content %}{% if campsites %}
+    <h2>Results for {{ query }}</h2>
+    <ul>
+        {% for site in campsites %}
+            <li>
+              
+                    <strong>{{ site.FacilityName }}</strong> - {{ site.FacilityTypeDescription }}
+                
+            </li>
+        {% endfor %}
+    </ul>
+{% else %}
+    <p>No results found.</p>
+{% endif %}
+
+{% endblock %}
