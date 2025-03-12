@@ -21,4 +21,23 @@ def search_view(request):
 # view for facility detail 
 def facility_detail(request, facility_id):
     campsite = return_facility_detail(facility_id)
-    return render(request, "facility_detail.html", {"campsite": campsite})
+
+    # return_facility_address actually returns a dicitonary inside a list
+    # exp: [{'AddressCountryCode': 'USA', 'AddressStateCode': 'CO', 'City': 'Hotchkiss', ....}]
+    # to get the data I want, have to parse it through [0]['attribute_name']
+    # so, first get the list
+    facility_addresses = return_facility_address(facility_id)
+    # then fill out data if it actually returns something 
+    # though this doesnt guarantee all attributes are filled out. exp, some results have no street address.
+    # have to add in checks for this, do it later. 
+    if facility_addresses:
+        city = facility_addresses[0].get("City") 
+        state = facility_addresses[0].get("AddressStateCode")
+        address = facility_addresses[0].get("FacilityStreetAddress1")
+    else:
+        city = "N/A"
+        state = "N/A"
+        address = 'N/A'
+  
+
+    return render(request, "facility_detail.html", {"campsite": campsite, "city": city, "state": state, "address": address})
