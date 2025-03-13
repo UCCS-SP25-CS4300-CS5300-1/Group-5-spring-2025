@@ -2,17 +2,42 @@
 {% extends "base_template.html" %}
 {% load static %}
 
-
 <!-- Replace block content in base_template.html -->
 {% block content %}
 
+<!-- Leaflet.js CSS & JS | Don't Touch -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+<style>
+    #map {
+        height: 450px;
+        width: 600px;
+        border-radius: 16px;
+    }
+</style>
+
 <div class="d-flex justify-content-center">
-    <iframe src="https://www.google.com/maps/embed?pb=!1m14!1m8!1m3!1d3315140.529795199!2d-110.514057!3d44.585795000000005!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x5351e55555555555%3A0xaca8f930348fe1bb!2sYellowstone%20National%20Park!5e1!3m2!1sen!2sus!4v1741043294190!5m2!1sen!2sus" 
-        width="600" height="450" style="border:0;" allowfullscreen="" loading="lazy" 
-        referrerpolicy="no-referrer-when-downgrade">
-    </iframe>
+    <div id="map"></div>
 </div>
 
+<script>
+    // Initialize the map centered on Yellowstone National Park
+    var map = L.map('map').setView([44.5858, -110.5141], 10);
 
+    // Add a tile layer (OpenStreetMap)
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; OpenStreetMap contributors'
+    }).addTo(map);
+
+    // Add a marker at Yellowstone National Park
+    var marker = L.marker([44.5858, -110.5141]).addTo(map)
+        .bindPopup("<b>Yellowstone National Park</b><br>Welcome to one of the greatest parks in the U.S.")
+        .openPopup();
+        
+    var marker = L.marker([38.8887, -104.7930]).addTo(map)
+        .bindPopup("<b>University of Colorado Colorado Springs</b><br> This marker holds the location for University of Colorado, Colorado Springs.")
+        .openPopup();
+</script>
 
 {% endblock %}
