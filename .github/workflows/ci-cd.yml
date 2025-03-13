@@ -15,10 +15,10 @@ jobs:       # The steps to run
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout Repository  # ✅ Fixed syntax
+      - name: Checkout Repository  
         uses: actions/checkout@v2
 
-      - name: Set up Python  # ✅ Fixed spacing
+      - name: Set up Python  
         uses: actions/setup-python@v2
         with:
           python-version: 3.12.3
@@ -30,22 +30,22 @@ jobs:       # The steps to run
 
       - name: Run Tests with Coverage
         run: |
-          coverage run camp_mate/manage.py test  # ✅ Fixed coverage command
+          coverage run camp_mate/manage.py test camp_mate.home
           coverage report --fail-under=80
 
-      - name: Upload Coverage Report as Artifact  # ✅ Fixed spacing & typo
+      - name: Upload Coverage Report as Artifact  
         uses: actions/upload-artifact@v4
         with:
           name: coverage-report
           path: coverage.xml
-          if-no-files-found: ignore  # ✅ Fixed typo
+          if-no-files-found: ignore  
 
   deploy:
-    needs: build
+    needs: build  #makes sure deploy only runs if build passes
     runs-on: ubuntu-latest
     if: github.event.pull_request.merged == true  # Only deploy when merging to 'main' branch
 
     steps:
-      - name: Deploy to Production  # ✅ Fixed syntax
+      - name: Deploy to Production  
         run: |
           # Add your deployment script or commands here
