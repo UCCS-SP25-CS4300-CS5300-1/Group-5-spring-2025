@@ -1,0 +1,53 @@
+name: Django CI/CD
+
+on:     #When to run this workflow
+  push:  # Runs on every commit to any branch
+    branches:
+      - '**'
+  pull_request:  # Runs on every pull request to any branch
+    branches:
+      - 'main'
+    types:
+      - 'closed' #Triggers only when a pull requrest to main has been mereged
+
+jobs:       #The steps to 
+  build:
+    runs-on: ubuntu-latest
+
+    steps:        #Clones github repo into github actions runner
+    - name: Checkout Repository
+      uses: actions/checkout@v2
+
+    - name: Set up Python
+      uses: actions/setup-python@v2
+      with:
+        python-version: 3.12.3
+
+    - name: Install Dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+
+    - name: Run Tests with Coverage
+      run: |
+        coverage python manage.py test
+        coverage report --fail-under=80
+
+
+    -name: Upload Coverage Report as Aritifact
+    uses: actions/upload-artifact@v3
+    with:
+      name: coverage-report
+      path: coverage.xml
+      if-no-files-fould: ignore
+
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    if: github.event.pull_request.merged == true  # Only deploy when merging to 'main' branch
+
+    steps:
+    - name: Deploy to Production
+      run: |
+        # Add your deployment script or commands here
