@@ -3,9 +3,12 @@ from bs4 import BeautifulSoup
 
 # Create your tests here.
 
-class BaseTemplateTests(TestCase):
-    def setUp(self):
-        self.client = Client()
+
+
+class BaseTemplateTest(TestCase):
+    def test_example(self):
+        self.assertEqual(1 + 1, 2)  # Dummy test to confirm it runs
+
 
     def test_base_template_contains_campmate_header(self):
         """Check that the header 'CampMate' is present in the template."""
