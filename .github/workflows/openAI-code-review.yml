@@ -27,4 +27,4 @@ jobs:
       env:
         OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
         GITHUB_TOKEN: ${{ secrets.REPO_ACCESS_TOKEN }}
-      run: python .github/actions/code_review.py
+      run: python scripts/code_review.py
