@@ -30,6 +30,7 @@ jobs:       # The steps to run
 
       - name: Run Tests with Coverage
         run: |
+          cd camp_mate
           coverage run manage.py test 
           coverage report --fail-under=80
 
