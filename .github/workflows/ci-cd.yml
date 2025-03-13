@@ -1,46 +1,44 @@
 name: Django CI/CD
 
-on:     #When to run this workflow
+on:     # When to run this workflow
   push:  # Runs on every commit to any branch
     branches:
       - '**'
-  pull_request:  # Runs on every pull request to any branch
+  pull_request:  # Runs on every pull request to main
     branches:
       - 'main'
     types:
-      - 'closed' #Triggers only when a pull requrest to main has been mereged
+      - closed  # Triggers only when a pull request to main has been merged
 
-jobs:       #The steps to 
+jobs:       # The steps to run
   build:
     runs-on: ubuntu-latest
 
-    steps:        #Clones github repo into github actions runner
-      -name: Checkout Repository
+    steps:
+      - name: Checkout Repository  # ✅ Fixed syntax
         uses: actions/checkout@v2
 
-      -name: Set up Python
+      - name: Set up Python  # ✅ Fixed spacing
         uses: actions/setup-python@v2
         with:
           python-version: 3.12.3
 
-      -name: Install Dependencies
+      - name: Install Dependencies
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
-      -name: Run Tests with Coverage
+      - name: Run Tests with Coverage
         run: |
-          coverage python manage.py test
+          coverage run manage.py test  # ✅ Fixed coverage command
           coverage report --fail-under=80
 
-
-      -name: Upload Coverage Report as Aritifact
-      uses: actions/upload-artifact@v3
-      with:
-        name: coverage-report
-        path: coverage.xml
-        if-no-files-fould: ignore
-
+      - name: Upload Coverage Report as Artifact  # ✅ Fixed spacing & typo
+        uses: actions/upload-artifact@v3
+        with:
+          name: coverage-report
+          path: coverage.xml
+          if-no-files-found: ignore  # ✅ Fixed typo
 
   deploy:
     needs: build
@@ -48,6 +46,6 @@ jobs:       #The steps to
     if: github.event.pull_request.merged == true  # Only deploy when merging to 'main' branch
 
     steps:
-    -name: Deploy to Production
-      run: |
-        # Add your deployment script or commands here
+      - name: Deploy to Production  # ✅ Fixed syntax
+        run: |
+          # Add your deployment script or commands here
