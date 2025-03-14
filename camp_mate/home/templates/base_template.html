@@ -23,54 +23,77 @@
 <body>
 
 <div class="container-fluid p-5 bg-primary text-white text-center d-flex align-items-center justify-content-center">
+  <a href="{% url 'index' %}" class="special-header">
     <h1>CampMate</h1>
+  </a>
+
     <img src="{% static 'images/cm.png' %}" alt="CampMate Logo" width="65" height = "65" class="ms-3">
 </div>
 
 <!-- Navigation Bar -->
 <header class="p-3 mb-3 border-bottom header-bg">
-    <div class="container">
-
-        <!-- Set design -->
-        <div class="d-flex flex-wrap align-items-center justify-content-center justify-content-lg-start">
-        <a href="/" class="d-flex align-items-center mb-2 mb-lg-0 text-dark text-decoration-none">
-          <svg class="bi me-2" width="40" height="32" role="img" aria-label="Bootstrap"><use xlink:href="#bootstrap"/></svg>
-        </a>
-
-        <div class="container d-flex justify-content-center align-items-center" style="height: 100px; position: relative;">
-            <!-- Search Bar -->
-            <form class="col-12 col-md-6 col-lg-4" role="search">
-                <input type="search" class="form-control text-center" placeholder="Search For A Campsite..." aria-label="Search" style="font-family: Nunito, sans-serif; font-weight:400; font-style: normal;">
-            </form>
-        
-            <!-- Dark Mode Toggle - Positioned on Top of Search Bar -->
-            <button id="darkModeToggle" class="btn btn-primary rounded-circle"
-                style="position: absolute; top: -30px; left: 50%; transform: translateX(-50%);">
-                <i id="darkModeIcon" class="fas fa-moon"></i>
-            </button>
-        </div>       
-            <!-- Dropdown Menu Positioned at Top Right -->
-            <div class="dropdown" style="position: absolute; top: 20px; right: 15px; border-radius: 12px; padding: 10px; background-color: white;">
-                <a href="#" class="d-block link-dark text-decoration-none dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false" style="font-family: Nunito, sans-serif; font-weight: 400; font-style: normal; font-size: 18px">
-                  Menu
-                </a>
-                <!-- Profile login dropdown menu -->
-                <ul class="dropdown-menu text-small">
-                  <li><a class="dropdown-item" href="#" style="font-family: Nunito, sans-serif; font-weight: 400; font-style: normal;">Login</a></li>
-                  <li><hr class="dropdown-divider"></li>
-                  <li><a class="dropdown-item" href="{% url 'register' %}" style="font-family: Nunito, sans-serif; font-weight: 400; font-style: normal;">Make Account</a></li>
-                </ul>
-            </div>
 
 
+      <!-- Set design -->
+      <div class="d-flex flex-wrap align-items-center justify-content-center justify-content-lg-start">
+      <a href="/" class="d-flex align-items-center mb-2 mb-lg-0 text-dark text-decoration-none">
+        <svg class="bi me-2" width="40" height="32" role="img" aria-label="Bootstrap"><use xlink:href="#bootstrap"/></svg>
+      </a>
+
+      <div class="container d-flex justify-content-center align-items-center" style="height: 100px; position: relative;">
+          <!-- Search Bar -->
+          <form class="col-12 col-md-6 col-lg-4" role="search" method="GET" action="{% url 'search' %}">
+              <input type="text" name="q" class="form-control text-center" placeholder="Search For A Campsite..." aria-label="Search" style="font-family: Nunito, sans-serif; font-weight:400; font-style: normal;">
+          </form>
+          <!-- Dark Mode Toggle - Positioned on Top of Search Bar -->
+          <button id="darkModeToggle" class="btn btn-primary rounded-circle"
+              style="position: absolute; top: -30px; left: 50%; transform: translateX(-50%);">
+              <i id="darkModeIcon" class="fas fa-moon"></i>
+          </button>
       </div>
-    </div>
+      <!-- Dropdown Menu Positioned at Top Right -->
+      <div class="dropdown" style="position: absolute; top: 20px; right: 15px; border-radius: 12px; padding: 10px; background-color: white;">
+        <a href="#" class="d-block link-dark text-decoration-none dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false" style="font-family: Nunito, sans-serif; font-weight: 400; font-style: normal; font-size: 18px">
+          Menu
+        </a>
+        <!-- Profile login dropdown menu -->
+        <ul class="dropdown-menu text-small">
+          <li><a class="dropdown-item" href="#" style="font-family: Nunito, sans-serif; font-weight: 400; font-style: normal;">Login</a></li>
+          <li><hr class="dropdown-divider"></li>
+          <li><a class="dropdown-item" href="#" style="font-family: Nunito, sans-serif; font-weight: 400; font-style: normal;">Make Account</a></li>
+        </ul>
+      </div>
+  </div>
+  </div>
 </header>
+
 
 <!-- add block content from html template -->
 {% block content %} 
 
 {% endblock %}
+
+
+<!-- Footer -->
+<footer class="bg-primary text-white text-center py-3 mt-5">
+  <div class="container">
+      <p class="mb-1" style="font-family: Nunito, sans-serif; font-weight: 400;">
+          &copy; 2025 CampMate. All rights reserved.
+      </p>
+      <p class="mb-2">
+          <a href="#" class="text-white me-3" style="text-decoration: none;">Privacy Policy</a>
+          <a href="#" class="text-white me-3" style="text-decoration: none;">Terms of Service</a>
+          <a href="#" class="text-white" style="text-decoration: none;">Contact Us</a>
+      </p>
+      <div class="d-flex justify-content-center">
+          <!-- Social Media Links -->
+          <a href="#" class="text-white me-3"><i class="fab fa-facebook fa-lg"></i></a>
+          <a href="#" class="text-white me-3"><i class="fab fa-twitter fa-lg"></i></a>
+          <a href="#" class="text-white me-3"><i class="fab fa-instagram fa-lg"></i></a>
+          <a href="#" class="text-white"><i class="fab fa-youtube fa-lg"></i></a>
+      </div>
+  </div>
+</footer>
 
 <!-- Dark mode toggle -->
 <script>
