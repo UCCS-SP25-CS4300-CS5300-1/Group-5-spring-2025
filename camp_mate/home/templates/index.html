@@ -32,13 +32,17 @@
     }).addTo(map);
 
     // Add a marker at Yellowstone National Park
+    {% comment %} 
+     
     var marker = L.marker([44.5858, -110.5141]).addTo(map)
         .bindPopup("<b>Yellowstone National Park</b><br>Welcome to one of the greatest parks in the U.S.")
         .openPopup();
         
     var marker = L.marker([38.8887, -104.7930]).addTo(map)
         .bindPopup("<b>University of Colorado Colorado Springs</b><br> This marker holds the location for University of Colorado, Colorado Springs.")
-        .openPopup();
+        .openPopup(); 
+
+    {% endcomment %}
 </script>
 
 {% endblock %}
