@@ -53,3 +53,13 @@ h1 {
     background: url('../images/cm_bg_v3.png') no-repeat center center;
     background-size: cover;
 }
+
+.special-header {
+    color: white;
+    text-decoration: none;
+
+}
+
+.special-header:hover {
+    color: white;
+}

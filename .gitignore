@@ -160,3 +160,7 @@ cython_debug/
 #.idea/
 
 .DS*
+
+
+#IGNORE VIRTUAL ENVIRONMENT
+camp_mate_venv/
