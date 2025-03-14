@@ -30,6 +30,7 @@ jobs:       # The steps to run
 
       - name: Run Tests with Coverage
         run: |
+          cd camp_mate
           coverage run --source=camp_mate,home manage.py test home.tests
           coverage report --fail-under=80 --omit="*/migrations/*,*/manage.py,*/wsgi.py"
 
