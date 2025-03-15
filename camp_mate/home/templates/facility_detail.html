@@ -9,6 +9,13 @@
 <p><strong>Type:</strong> {{ campsite.FacilityTypeDescription }}</p>
 <p><strong>Desc:</strong> {{ campsite.FacilityDescription|default:"N/A" }}</p>
 <p><strong>Contact Info:</strong> {{ campsite.FacilityPhone|default:"No contact information available" }}</p>
+<p><strong>ADA Accessible:</strong> {{ campsite.FacilityAdaAccess|default:"No information available" }}</p>
+
+{% if user.is_authenticated %}
+<a href="{% url 'save_facility' campsite.FacilityID %}?name={{ campsite.FacilityName }}&location={{ address }}, {{ city }}, {{ state }}&type={{ campsite.FacilityTypeDescription }}&a_txt={{ campsite.FacilityAcessibilityText }}&ada={{ campsite.FacilityAdaAccess }}&phone={{ campsite.FacilityPhone }}& email={{ campsite.FacilityEmail }}&description={{ campsite.FacilityDescription }}"> Save to Favorites </a>
+
+{% endif %}
+
 
 <a href="{% url 'search' %}?q={{ request.GET.q }}">Back to Search Results</a>
 

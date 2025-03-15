@@ -31,14 +31,17 @@ def user_profile(request):
     prof = UserProfile.objects.get(user=request.user)
 
     # retrieve favorited location IDs
-    favorited_loc_id = prof.favorited_loc.all()
+    favorite_loc = prof.favorited_loc.all()
 
     # getting previously favorited locations
+    # Piper editing: dont need to loop through favorite_loc; favorite_loc holds all facility instances
+    '''
     favorite_loc = []
     for loc in favorited_loc_id:
         loc_details = return_facility_detail(loc.f_id)
         if loc_details:
-            favorite_loc.append(loc_details)
+            favorite_loc.append(loc_details)'
+    '''
 
     # getting available locations to prepare to add new favorites
     location = 'denver'
