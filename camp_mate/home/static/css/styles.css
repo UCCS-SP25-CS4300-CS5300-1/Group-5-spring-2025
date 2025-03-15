@@ -63,3 +63,37 @@ h1 {
 .special-header:hover {
     color: white;
 }
+
+.search-results {
+    font-family: "Nunito", sans-serif;
+    font-weight: 400;
+    font-style: normal;
+    font-size: 20pt;
+    color: #105c4a;
+    text-align: center;
+
+}
+
+.results-container {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+}
+
+.campsite-list {
+    width: 45%;
+}
+
+.map-container {
+    width: 75%;
+    margin-right: 30px;
+}
+
+.campsite-items {
+    font-family: "Nunito", sans-serif;
+    font-weight: 400;
+    font-style: normal;
+    font-size: 14pt;
+    color: #105c4a;
+
+}

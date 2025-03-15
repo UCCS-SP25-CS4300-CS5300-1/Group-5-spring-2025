@@ -2,21 +2,19 @@
 {% extends "base_template.html" %}
 {% load static %}
 
-<!-- Replace block content in base_template.html -->
+
+<!-- Replace block content in base_template.html BEFORE I MESS EVERYTHING UP-->
 {% block content %}
 
-{% if campsites %}
-    <h2>Results for {{ query }}</h2>
-    
-    <!-- Display Map -->
-    <div class="d-flex justify-content-center">
-        <div id="map"></div>
-    </div>
+<div class="results-container">
+    <div class="campsite-list">
 
+{% if campsites %}
+    <h2 class="search-results">Results For {{ query }}</h2>
     <ul>
         {% for site in campsites %}
-            <li>
-                <a href="{% url 'facility_detail' site.FacilityID %}?q={{ request.GET.q }}">
+            <li class="campsite-items">
+                <a href="{% url 'facility_detail' site.FacilityID %}?q={{ request.GET.q }}" style="color: #ff930e">
                     <strong>{{ site.FacilityName }}</strong> - {{ site.FacilityTypeDescription }}
                 </a>
             </li>
@@ -25,6 +23,14 @@
 {% else %}
     <p>No results found.</p>
 {% endif %}
+
+</div>
+
+ <!-- Display Map -->
+ <div class="map-container">
+    <div id="map"></div>
+</div>
+</div>
 
 <!-- Leaflet.js CSS & JS -->
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
@@ -38,6 +44,7 @@
         margin-bottom: 20px;
     }
 </style>
+
 
 <script>
     document.addEventListener("DOMContentLoaded", function () {
@@ -71,5 +78,6 @@
         });
     });
 </script>
+
 
 {% endblock %}
