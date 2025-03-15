@@ -9,6 +9,6 @@ urlpatterns = [
     # example in html <a href="{% url 'index' %}">Home</a>.
     path('', views.index, name='index'),
     path('search/', views.search_view, name='search'),
-    path("facility/<str:facility_id>/", views.facility_detail, name="facility_detail")
+    path("facility/<str:facility_id>/", views.facility_detail, name="facility_detail"),
 
 ]

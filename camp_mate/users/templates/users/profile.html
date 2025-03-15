@@ -1,0 +1,40 @@
+
+
+{% block content %}
+    <!-- begin list of user favorited locations -->
+
+    <h1>{{ user.username }}'s profile</h1>
+
+    <h2> favorited locations</h2>
+    {% if favorite_loc %}
+        <ul>
+            {% for campsite in favorited_loc %}
+                <li>
+                    <h3> {{ campsite.FacilityName }}</h3>
+                    <p> {{ campsite.Address }}</p>
+                    <p><strong>Phone:</strong> {{campsite.Phone }}</p>
+                </li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <p> You have no favorite locations</p>
+    {% endif %}
+
+    <!-- begin favorite location addition -->
+    <h1>Add favorite locations</h1>
+    <form method = "post">
+        {% csrf_token %}
+
+        <ul>
+            {% for campsite in available_loc %}
+                <li>
+                    <label>
+                        <input type = "checkbox" name="favorite_loc" value="{{ campsite.f_id }}">
+                        {{campsite.FacilityName }} - {{ campsite.Address }}
+                    </label>
+                </li>
+            {% endfor %}
+        </ul>
+        <button type="submit">Save Favorite locations</button>
+    </form>
+{% endblock %}
