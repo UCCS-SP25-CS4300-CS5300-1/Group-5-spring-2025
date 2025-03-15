@@ -58,9 +58,15 @@
         </a>
         <!-- Profile login dropdown menu -->
         <ul class="dropdown-menu text-small">
-          <li><a class="dropdown-item" href="#" style="font-family: Nunito, sans-serif; font-weight: 400; font-style: normal;">Login</a></li>
-          <li><hr class="dropdown-divider"></li>
-          <li><a class="dropdown-item" href="#" style="font-family: Nunito, sans-serif; font-weight: 400; font-style: normal;">Make Account</a></li>
+          {% if user.is_authenticated %}
+            <li><a class="dropdown-item" href="{% url 'logout' %}" style="font-family: Nunito, sans-serif; font-weight: 400; font-style: normal;">Logout</a></li>
+            <li><hr class="dropdown-divider"></li>
+            <li><a class="dropdown-item" href="{% url 'user_profile' %}" style="font-family: Nunito, sans-serif; font-weight: 400; font-style: normal;">My Profile</a></li>
+          {% else %}
+            <li><a class="dropdown-item" href="{% url 'login' %}" style="font-family: Nunito, sans-serif; font-weight: 400; font-style: normal;">Login</a></li>
+            <li><hr class="dropdown-divider"></li>
+            <li><a class="dropdown-item" href="{% url 'register' %}" style="font-family: Nunito, sans-serif; font-weight: 400; font-style: normal;">Make Account</a></li>
+          {% endif %}
         </ul>
       </div>
   </div>

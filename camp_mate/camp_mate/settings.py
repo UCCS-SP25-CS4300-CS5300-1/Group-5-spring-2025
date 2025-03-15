@@ -128,3 +128,12 @@ STATIC_URL = 'static/'
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+# changing default login redirect to user profile
+LOGIN_REDIRECT_URL = '/'
+
+# changing default logout redirect to the home screen
+LOGOUT_REDIRECT_URL = '/'
+
+# changing default user to CampUser
+AUTH_USER_MODEL = 'users.CampUser'
