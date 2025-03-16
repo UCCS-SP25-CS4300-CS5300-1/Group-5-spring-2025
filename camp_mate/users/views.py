@@ -9,6 +9,7 @@ from django.contrib.auth.decorators import login_required
 from .forms import CampUserCreationForm
 from home.models import Facility
 from home.utils import return_facility_detail, search_facilities
+from django.contrib.auth import logout
 
 # this gets the user creation form for CampUser - uses the form created in forms.py
 # redirects to the root directory upon completion
@@ -67,3 +68,10 @@ def user_profile(request):
     }
 
     return render(request, 'users/profile.html', context)
+
+# sorry Zach, had to make own manual view for logging out user. couldnt figure out why orig code not working 
+# log out the user
+def logoutUser(request):
+    logout(request)
+    # after logging out returns user to landing page 
+    return redirect('index')

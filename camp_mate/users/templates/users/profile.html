@@ -1,25 +1,30 @@
-
-
+{% extends "base_user_template.html" %} <!-- uses user template from home/templates -->
+{% load static %}
 {% block content %}
-    <!-- begin list of user favorited locations -->
+<div class="container mt-4">
+    <h1 class="text-center">{{ user.username }}'s Profile</h1>
 
-    <h1>{{ user.username }}'s profile</h1>
+    <h2 class="mt-4">Favorited Locations</h2>
 
-    <h2> favorited locations</h2>
     {% if favorite_loc %}
-        <ul>
-            {% for campsite in favorite_loc %}
-                <li>
-                    
-                    <h3> {{ campsite.name }}</h3>
-                    <p> {{ campsite.location }}</p>
-                    <p><strong>Phone:</strong> {{campsite.phone }}</p>
-                </li>
-            {% endfor %}
-        </ul>
+    <div class="row">
+        {% for campsite in favorite_loc %}
+        <div class="col-md-6 col-lg-4 mb-4">
+            <div class="card shadow-sm h-100">
+                <div class="card-body">
+                    <h5 class="card-title">{{ campsite.name }}</h5>
+                    <p class="card-text"><strong>Location:</strong> {{ campsite.location }}</p>
+                    <p class="card-text"><strong>Phone:</strong> {{ campsite.phone }}</p>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
     {% else %}
-        <p> You have no favorite locations</p>
+    <p class="text-muted">You have no favorite locations.</p>
     {% endif %}
+</div>
+
 
 
     <!-- begin favorite location addition 
