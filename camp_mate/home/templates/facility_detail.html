@@ -12,11 +12,13 @@
 <p><strong>ADA Accessible:</strong> {{ campsite.FacilityAdaAccess|default:"No information available" }}</p>
 
 {% if user.is_authenticated %}
-<a href="{% url 'save_facility' campsite.FacilityID %}?name={{ campsite.FacilityName }}&location={{ address }}, {{ city }}, {{ state }}&type={{ campsite.FacilityTypeDescription }}&a_txt={{ campsite.FacilityAcessibilityText }}&ada={{ campsite.FacilityAdaAccess }}&phone={{ campsite.FacilityPhone }}& email={{ campsite.FacilityEmail }}&description={{ campsite.FacilityDescription }}"> Save to Favorites </a>
+<a href="{% url 'save_facility' campsite.FacilityID %}?name={{ campsite.FacilityName }}&location={{ address }}, {{ city }}, {{ state }}&type={{ campsite.FacilityTypeDescription }}&a_txt={{ campsite.FacilityAcessibilityText }}&ada={{ campsite.FacilityAdaAccess }}&phone={{ campsite.FacilityPhone }}& email={{ campsite.FacilityEmail }}&description={{ campsite.FacilityDescription }}" class="btn btn-info" role="button"> Save to Favorites </a>
 
 {% endif %}
 
 
-<a href="{% url 'search' %}?q={{ request.GET.q }}">Back to Search Results</a>
+
+<a href="{% url 'search' %}?q={{ request.GET.q }}" class="btn btn-info" role="button">Back to Search Results</a>
+
 
 {% endblock %}

@@ -15,6 +15,10 @@
                     <h5 class="card-title">{{ campsite.name }}</h5>
                     <p class="card-text"><strong>Location:</strong> {{ campsite.location }}</p>
                     <p class="card-text"><strong>Phone:</strong> {{ campsite.phone }}</p>
+                    <div class="d-flex justify-content-center gap-2">
+                    <a href="{% url 'facility_detail' campsite.f_id %}" class="btn btn-info" role="button">View Details</a>
+                    <a href="" class="btn btn-info" role="button">Let's Pack!</a>
+                    </div>
                 </div>
             </div>
         </div>
@@ -23,6 +27,8 @@
     {% else %}
     <p class="text-muted">You have no favorite locations.</p>
     {% endif %}
+
+    <h1 class="text-center">{{ user.username }}'s Preferences</h1>
 </div>
 
 
