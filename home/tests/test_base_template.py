@@ -8,7 +8,7 @@ class BaseTemplateTests(TestCase):
         self.client = Client()
 
     def test_base_template_contains_campmate_header(self):
-        """Check that the header 'CampMate' is present in the template."""
+        #Check that the header 'CampMate' is present in the template.
         response = self.client.get('/')  # Adjust URL if needed
         self.assertEqual(response.status_code, 200)
         soup = BeautifulSoup(response.content, 'html.parser')
@@ -17,7 +17,7 @@ class BaseTemplateTests(TestCase):
         self.assertEqual(header.text.strip(), 'CampMate')
 
     def test_static_css_is_included(self):
-        """Ensure the custom CSS file is linked in the template."""
+        #Ensure the custom CSS file is linked in the template.
         response = self.client.get('/')
         self.assertEqual(response.status_code, 200)
         soup = BeautifulSoup(response.content, 'html.parser')
@@ -25,7 +25,7 @@ class BaseTemplateTests(TestCase):
         self.assertIsNotNone(css_link, "The page should include the custom CSS file.")
 
     def test_bootstrap_css_is_included(self):
-        """Check that the Bootstrap CSS is loaded via the CDN."""
+        #Check that the Bootstrap CSS is loaded via the CDN.
         response = self.client.get('/')
         self.assertEqual(response.status_code, 200)
         soup = BeautifulSoup(response.content, 'html.parser')
@@ -33,7 +33,7 @@ class BaseTemplateTests(TestCase):
         self.assertIsNotNone(bootstrap_css, "Bootstrap CSS should be included.")
 
     def test_dark_mode_toggle_exists(self):
-        """Verify that the dark mode toggle button and its icon exist."""
+        #Verify that the dark mode toggle button and its icon exist.
         response = self.client.get('/')
         self.assertEqual(response.status_code, 200)
         soup = BeautifulSoup(response.content, 'html.parser')
@@ -43,7 +43,7 @@ class BaseTemplateTests(TestCase):
         self.assertIsNotNone(dark_mode_icon, "The dark mode toggle button should include an icon.")
 
     def test_navigation_menu_exists(self):
-        """Ensure that the menu dropdown is present in the header."""
+        #Ensure that the menu dropdown is present in the header.
         response = self.client.get('/')
         self.assertEqual(response.status_code, 200)
         soup = BeautifulSoup(response.content, 'html.parser')
