@@ -1,0 +1,65 @@
+{% extends "base_user_template.html" %}
+{% load static %}
+{% block content %}
+
+<!-- doing extra css to override the body element from base, since i want diff bg image -->
+{% block extra_css %}
+    <style>
+        body {
+            background: url("{% static 'images/test.png' %}");
+            background-size: cover;
+            background-attachment: fixed;
+            background-repeat: no-repeat;
+            background-position: center;
+        }
+    </style>
+{% endblock %}
+<div class="container mt-4">
+    <!-- Profile Header -->
+    <div class="card shadow-lg">
+        <div class="card-header bg-primary text-white text-center">
+            <h1 class="mb-0">{{ user.username }}'s Profile</h1>
+        </div>
+
+        <div class="card-body">
+            <!-- Favorited Locations Section -->
+            <h2 class="mb-0 text-center">Favorited Locations</h2>
+
+            {% if favorite_loc %}
+            <div class="row">
+                {% for campsite in favorite_loc %}
+                <div class="col-md-6 col-lg-4 mb-4">
+                    <div class="card shadow-sm h-100">
+                        <div class="card-body">
+                            <h5 class="card-title">{{ campsite.name }}</h5>
+                            <ul class="list-group list-group-flush">
+                                <li class="list-group-item"><i class="fas fa-map-marker-alt"></i> <strong>Location:</strong> {{ campsite.location }}</li>
+                                <li class="list-group-item"><i class="fas fa-phone"></i> <strong>Phone:</strong> {{ campsite.phone }}</li>
+                            </ul>
+                            <div class="d-flex justify-content-center gap-2 mt-3">
+                                <a href="{% url 'facility_detail' campsite.f_id %}" class="btn btn-info">
+                                    <i class="fas fa-info-circle"></i> View Details
+                                </a>
+                                <a href="" class="btn btn-success">
+                                    <i class="fas fa-suitcase"></i> Let's Pack!
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <p class="text-muted text-center">You have no favorite locations.</p>
+            {% endif %}
+        </div>
+
+        <!-- Preferences Section -->
+        <div class="card-footer text-center bg-light">
+            <h2 class="mb-0">Preferences</h2>
+        </div>
+    </div>
+</div>
+</div>
+
+{% endblock %}
