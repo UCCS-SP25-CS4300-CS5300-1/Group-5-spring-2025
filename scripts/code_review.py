@@ -6,7 +6,7 @@ from github import Github, GithubException
 from openai import OpenAI
 
 
-openai.api_key = os.getenv("OPENAI_API_KEY")
+OpenAi.api_key = os.getenv("OPENAI_API_KEY")
 TOKEN_LIMIT = 2048  
 
 
