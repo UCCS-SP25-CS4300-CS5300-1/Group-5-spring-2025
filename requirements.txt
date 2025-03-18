@@ -31,3 +31,6 @@ supervisor==4.2.5
 tqdm==4.67.1
 typing_extensions==4.12.2
 urllib3==2.3.0
+wheel==0.42.0
+requests==2.32.3
+
