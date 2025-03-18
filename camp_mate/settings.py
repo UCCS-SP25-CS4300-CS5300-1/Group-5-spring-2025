@@ -36,6 +36,7 @@ ALLOWED_HOSTS = [
 
 CSRF_TRUSTED_ORIGINS = [
     'https://campmate-cs4300-ey35p.ondigitalocean.app/',
+    'https://campmate.ddns.net',
 ]
 
 
