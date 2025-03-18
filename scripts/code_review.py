@@ -1,5 +1,13 @@
 #Code comes from Medium article by Michael Scherding https://michael-scherding.medium.com/simplifying-pull-request-reviews-with-openai-and-github-actions-23ef467a1ef9 
 import os
+import json
+import textwrap 
+from git import Repo
+from github import Github
+import openai
+
+openai.api_key = os.getenv("OPENAI_API_KEY")
+
 
 def get_file_content(file_path):
     """
