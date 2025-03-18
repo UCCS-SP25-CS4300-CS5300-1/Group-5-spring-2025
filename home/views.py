@@ -145,7 +145,7 @@ def user_profile(request):
         'available_loc': available_loc, 
     }
 
-    return render(request, 'home/profile.html', context)
+    return render(request, 'users/profile.html', context)
 
 
 # sorry Zach, had to make own manual view for logging out user. couldnt figure out why orig code not working 
