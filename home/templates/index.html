@@ -1,11 +1,11 @@
-<!-- inherit from base.html-->
+<!-- Inherit from base.html -->
 {% extends "base_template.html" %}
 {% load static %}
 
 <!-- Replace block content in base_template.html -->
 {% block content %}
 
-<!-- Leaflet.js CSS & JS | Don't Touch -->
+<!-- Leaflet.js CSS & JS -->
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
@@ -18,13 +18,28 @@
     }
 </style>
 
-
 <div class="d-flex justify-content-center">
     <div id="map"></div>
 </div>
+<div class="d-flex justify-content-center">
+    <button onclick="locateUser()" class="btn btn-primary">Show My Location</button>
+</div>
+
+
+
+
 
 <script>
-    // Initialize the map centered on Yellowstone National Park
+
+    // Defining Custom Icon-Marker
+    var gpsIcon = L.icon({
+        iconUrl: "{% static 'images/red-marker.png' %}",
+        iconSize: [38, 40],
+        iconAnchor: [22, 38],
+        popupAnchor: [-3, -76],
+    });
+
+    // Initialize the map centered on a default location
     var map = L.map('map').setView([44.5858, -110.5141], 10);
 
     // Add a tile layer (OpenStreetMap)
@@ -32,18 +47,34 @@
         attribution: '&copy; OpenStreetMap contributors'
     }).addTo(map);
 
-    // Add a marker at Yellowstone National Park
-    {% comment %} 
-     
-    var marker = L.marker([44.5858, -110.5141]).addTo(map)
-        .bindPopup("<b>Yellowstone National Park</b><br>Welcome to one of the greatest parks in the U.S.")
-        .openPopup();
-        
-    var marker = L.marker([38.8887, -104.7930]).addTo(map)
-        .bindPopup("<b>University of Colorado Colorado Springs</b><br> This marker holds the location for University of Colorado, Colorado Springs.")
-        .openPopup(); 
+    // Function to locate the user and add a marker
+    function locateUser() {
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(
+                function(position) {
+                    var lat = position.coords.latitude;
+                    var lon = position.coords.longitude;
+                    var accuracy = position.coords.accuracy;
 
-    {% endcomment %}
+                    // Add a marker at the user's location
+                    var userMarker = L.marker([lat, lon], {icon: gpsIcon}).addTo(map)
+                        .bindPopup("<b>Your Location</b><br>Latitude: " + lat.toFixed(2) + "<br>Longitude: " + lon.toFixed(2) + "<br>Accuracy: " + accuracy + " meters.")
+                        .openPopup();
+
+                    // Add a circle to represent the accuracy
+                    var accuracyCircle = L.circle([lat, lon], { radius: accuracy }).addTo(map);
+
+                    // Center the map on the user's location
+                    map.setView([lat, lon], 13);
+                },
+                function(error) {
+                    alert("Error retrieving location: " + error.message);
+                }
+            );
+        } else {
+            alert("Geolocation is not supported by this browser.");
+        }
+    }
 </script>
 
 {% endblock %}
