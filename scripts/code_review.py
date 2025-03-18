@@ -5,6 +5,7 @@ from git import Repo
 from github import Github, GithubException
 from openai import OpenAI
 
+#from https://michael-scherding.medium.com/simplifying-pull-request-reviews-with-openai-and-github-actions-23ef467a1ef9
 
 OpenAI.api_key = os.getenv("OPENAI_API_KEY")
 TOKEN_LIMIT = 2048  
@@ -20,6 +21,11 @@ def get_changed_files(pr):
     Fetches the changed files from a pull request by cloning the repository
     and diffing the base and head branches.
     """
+
+    token = os.getenv("GITHUB_TOKEN")
+    if not token:
+        raise ValueError("GITHUB_TOKEN environment variable not set.")
+    
     repo = Repo.clone_from(pr.base.repo.clone_url, to_path='./repo', branch=pr.head.ref)
     base_ref = f"origin/{pr.base.ref}"
     head_ref = f"origin/{pr.head.ref}"
