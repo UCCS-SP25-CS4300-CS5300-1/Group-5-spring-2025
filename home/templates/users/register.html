@@ -1,0 +1,15 @@
+{% extends "base_user_template.html" %}
+{% load static %}
+
+{% block title %}
+    Register a New User
+{% endblock %}
+
+{%block content %}
+    <h1> Register a New User</h1>
+    <form class ="form-with-validation" action ="/register/" method="post">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button class="form-submit">Submit</button>
+    </form>
+{% endblock %}
