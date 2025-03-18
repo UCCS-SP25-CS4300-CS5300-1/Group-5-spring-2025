@@ -1,24 +1,47 @@
-<!-- inherit from base.html-->
 {% extends "base_template.html" %}
 {% load static %}
-<!-- Replace block content in base_template.html -->
 {% block content %}
 
-<h2>{{ campsite.FacilityName }}</h2>
-<p><strong>Location:</strong> {{ address }}, {{ city }}, {{ state }}</p>
-<p><strong>Type:</strong> {{ campsite.FacilityTypeDescription }}</p>
-<p><strong>Desc:</strong> {{ campsite.FacilityDescription|default:"N/A" }}</p>
-<p><strong>Contact Info:</strong> {{ campsite.FacilityPhone|default:"No contact information available" }}</p>
-<p><strong>ADA Accessible:</strong> {{ campsite.FacilityAdaAccess|default:"No information available" }}</p>
+<div class="container mt-4">
+    <div class="card shadow-lg">
+       
+        <div class="card-header bg-primary text-white text-center">
+            <h2 class="mb-0">{{ campsite.FacilityName }}</h2>
+        </div>
+        <!-- Facility Detail Card Body-->
+        <div class="card-body">
+            <div class="row">
+                
+                <div class="col-md-6">
+                    <ul class="list-group list-group-flush">
+                        <li class="list-group-item"><i class="fas fa-map-marker-alt"></i> <strong>Location:</strong> {{ address }}, {{ city }}, {{ state }}</li>
+                        <li class="list-group-item"><i class="fas fa-campground"></i> <strong>Type:</strong> {{ campsite.FacilityTypeDescription }}</li>
+                        <li class="list-group-item"><i class="fas fa-info-circle"></i> <strong>Description:</strong> {{ campsite.FacilityDescription|default:"N/A" }}</li>
+                    </ul>
+                </div>
+                <div class="col-md-6">
+                    <ul class="list-group list-group-flush">
+                        <li class="list-group-item"><i class="fas fa-phone"></i> <strong>Contact:</strong> {{ campsite.FacilityPhone|default:"No contact information available" }}</li>
+                        <li class="list-group-item"><i class="fas fa-wheelchair"></i> <strong>ADA Accessible:</strong> {{ campsite.FacilityAdaAccess|default:"No information available" }}</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
 
-{% if user.is_authenticated %}
-<a href="{% url 'save_facility' campsite.FacilityID %}?name={{ campsite.FacilityName }}&location={{ address }}, {{ city }}, {{ state }}&type={{ campsite.FacilityTypeDescription }}&a_txt={{ campsite.FacilityAcessibilityText }}&ada={{ campsite.FacilityAdaAccess }}&phone={{ campsite.FacilityPhone }}& email={{ campsite.FacilityEmail }}&description={{ campsite.FacilityDescription }}" class="btn btn-info" role="button"> Save to Favorites </a>
+         <!-- Facility Detail Card Buttons -->
+        <div class="card-footer text-center">
+            {% if user.is_authenticated %}
+                <a href="{% url 'save_facility' campsite.FacilityID %}?name={{ campsite.FacilityName }}&location={{ address }}, {{ city }}, {{ state }}&type={{ campsite.FacilityTypeDescription }}&a_txt={{ campsite.FacilityAcessibilityText }}&ada={{ campsite.FacilityAdaAccess }}&phone={{ campsite.FacilityPhone }}&email={{ campsite.FacilityEmail }}&description={{ campsite.FacilityDescription }}" 
+                   class="btn btn-success me-2">
+                    <i class="fas fa-heart"></i> Save to Favorites
+                </a>
+            {% endif %}
 
-{% endif %}
-
-
-
-<a href="{% url 'search' %}?q={{ request.GET.q }}" class="btn btn-info" role="button">Back to Search Results</a>
-
+            <a href="{% url 'search' %}?q={{ request.GET.q }}" class="btn btn-secondary">
+                <i class="fas fa-arrow-left"></i> Back to Search Results
+            </a>
+        </div>
+    </div>
+</div>
 
 {% endblock %}
