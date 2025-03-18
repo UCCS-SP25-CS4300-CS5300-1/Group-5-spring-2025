@@ -1,30 +1,33 @@
 name: OpenAI Code Review
 
 on:
-  pull_request:  # ✅ Fixed `pull-request` → `pull_request`
+  pull_request:  
     branches:
       - main
+      - ai_test
 
 jobs:
   ai-code-review:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout Repository  # ✅ Fixed typo in `actions`
+      - name: Checkout Repository  
         uses: actions/checkout@v2
 
-      - name: Set up Python  # ✅ Fixed `-name:` to `- name:`
+      - name: Set up Python  
         uses: actions/setup-python@v2
         with:
           python-version: 3.12.8
 
-      - name: Install Dependencies  # ✅ Fixed indentation
+      - name: Install Dependencies 
         run: |
           python -m pip install --upgrade pip
-          pip install openai PyGithub GitPython  # ✅ Ensures dependencies are installed
+          pip install openai PyGithub GitPython  
 
       - name: Run AI Code Review
         env:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
           GITHUB_TOKEN: ${{ secrets.REPO_ACCESS_TOKEN }}
-        run: python scripts/code_review.py  # ✅ Runs your AI code review script
+        run: python scripts/code_review.py  
+
+
