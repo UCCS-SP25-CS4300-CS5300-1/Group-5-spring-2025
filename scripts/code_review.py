@@ -1,5 +1,5 @@
 #Code comes from Medium article by Michael Scherding https://michael-scherding.medium.com/simplifying-pull-request-reviews-with-openai-and-github-actions-23ef467a1ef9 
-
+import os
 
 def get_file_content(file_path):
     """
