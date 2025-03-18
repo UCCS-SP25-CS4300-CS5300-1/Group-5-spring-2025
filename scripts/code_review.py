@@ -1,133 +1,112 @@
-#Code comes from Medium article by Michael Scherding https://michael-scherding.medium.com/simplifying-pull-request-reviews-with-openai-and-github-actions-23ef467a1ef9 
 import os
 import json
-import textwrap 
+import textwrap
 from git import Repo
-from github import Github
-import openai
+from github import Github, GithubException
+from openai import OpenAI
 
-openai.api_key = os.getenv("OPENAI_API_KEY")
 
+client = OpenAI() 
 
 def get_file_content(file_path):
-    """
-    This function reads the content of a file.
-
-    Args:
-        file_path (str): The path to the file.
-
-    Returns:
-        str: The content of the file.
-    """
+    """Reads the content of a file."""
     with open(file_path, 'r') as file:
         return file.read()
 
-
 def get_changed_files(pr):
     """
-    This function fetches the files that were changed in a pull request.
-
-    Args:
-        pr (PullRequest): The pull request object.
-
-    Returns:
-        dict: A dictionary containing the file paths as keys and their content as values.
+    Fetches the changed files from a pull request by cloning the repository
+    and diffing the base and head branches.
     """
-    # Clone the repository and checkout the PR branch
-    repo = git.Repo.clone_from(pr.base.repo.clone_url, to_path='./repo', branch=pr.head.ref)
-
-    # Get the difference between the PR branch and the base branch
+    repo = Repo.clone_from(pr.base.repo.clone_url, to_path='./repo', branch=pr.head.ref)
     base_ref = f"origin/{pr.base.ref}"
     head_ref = f"origin/{pr.head.ref}"
-    diffs = repo.git.diff(base_ref, head_ref, name_only=True).split('\n')
+    diffs = repo.git.diff(base_ref, head_ref, name_only=True).splitlines()
 
-    # Initialize an empty dictionary to store file contents
     files = {}
     for file_path in diffs:
         try:
-            # Fetch each file's content and store it in the files dictionary
-            files[file_path] = get_file_content('./repo/' + file_path)
+            full_path = os.path.join('./repo', file_path)
+            files[file_path] = get_file_content(full_path)
         except Exception as e:
             print(f"Failed to read {file_path}: {e}")
-
     return files
-
-
 
 def send_to_openai(files):
     """
-    This function sends the changed files to OpenAI for review.
-
-    Args:
-        files (dict): A dictionary containing the file paths as keys and their content as values.
-
-    Returns:
-        str: The review returned by OpenAI.
+    Sends the changed files to OpenAI for review.
+    The code is chunked based on TOKEN_LIMIT to avoid exceeding token limits.
     """
-    # Concatenate all the files into a single string
     code = '\n'.join(files.values())
-
-    # Split the code into chunks that are each within the token limit
     chunks = textwrap.wrap(code, TOKEN_LIMIT)
-
     reviews = []
     for chunk in chunks:
-        # Send a message to OpenAI with each chunk of the code for review
-        message = openai.ChatCompletion.create(
-            model="gpt-3.5-turbo",
-            messages=[
-                {
-                    "role": "user",
-                    "content": "You are assigned as a code reviewer. Your responsibility is to review the provided code and offer recommendations for enhancement. Identify any problematic code snippets, highlight potential issues, and evaluate the overall quality of the code you review:\n" + chunk
-                }
-            ],
-        )
-
-        # Add the assistant's reply to the list of reviews
-        reviews.append(message['choices'][0]['message']['content'])
-
-    # Join all the reviews into a single string
-    review = "\n".join(reviews)
-
-    return review
-
+        try:
+            response = openai.ChatCompletion.create(
+                model="gpt-3.5-turbo",
+                messages=[
+                    {
+                        "role": "user",
+                        "content": (
+                            "You are assigned as a code reviewer. Your responsibility is to review the provided code and offer recommendations for enhancement. "
+                            "Identify any problematic code snippets, highlight potential issues, and evaluate the overall quality of the code you review:\n" + chunk
+                        )
+                    }
+                ]
+            )
+            reviews.append(response['choices'][0]['message']['content'])
+        except Exception as e:
+            print(f"Error during OpenAI request: {e}")
+    return "\n".join(reviews)
 
 def post_comment(pr, comment):
-    """
-    This function posts a comment on the pull request with the review.
-
-    Args:
-        pr (PullRequest): The pull request object.
-        comment (str): The comment to post.
-    """
-    # Post the OpenAI's response as a comment on the PR
-    pr.create_issue_comment(comment)
-
-
+    """Posts a comment on the pull request with the review."""
+    try:
+        pr.create_issue_comment(comment)
+    except GithubException as e:
+        print(f"Failed to post comment: {e}")
 
 def main():
     """
-    The main function orchestrates the operations of:
-    1. Fetching changed files from a PR
-    2. Sending those files to OpenAI for review
-    3. Posting the review as a comment on the PR
+    Main function orchestrating the code review workflow:
+      1. Loads the event JSON to get repository and pull request details.
+      2. Instantiates the GitHub client using a token.
+      3. Retrieves the pull request and its changed files.
+      4. Sends the code to OpenAI for review and posts the review as a comment.
     """
-    # Get the pull request event JSON
-    with open(os.getenv('GITHUB_EVENT_PATH')) as json_file:
+    event_path = os.getenv('GITHUB_EVENT_PATH')
+    if not event_path:
+        raise ValueError("GITHUB_EVENT_PATH environment variable not set.")
+
+    with open(event_path) as json_file:
         event = json.load(json_file)
 
-    # Instantiate the Github object using the Github token
-    # and get the pull request object
-    pr = Github(os.getenv('GITHUB_TOKEN')).get_repo(event['repository']['full_name']).get_pull(event['number'])
+    # Use the default GITHUB_TOKEN or fall back to an alternative token (e.g., MY_GITHUB_TOKEN)
+    token = os.getenv('GITHUB_TOKEN') or os.getenv('MY_GITHUB_TOKEN')
+    if not token:
+        raise ValueError("No GitHub token provided. Set GITHUB_TOKEN or MY_GITHUB_TOKEN environment variable.")
 
-    # Get the changed files in the pull request
+    g = Github(token)
+    repo_full_name = event['repository']['full_name']
+    pr_number = event.get('number')
+    if pr_number is None:
+        raise ValueError("Pull request number not found in event data.")
+
+    try:
+        repo = g.get_repo(repo_full_name)
+        pr = repo.get_pull(pr_number)
+    except GithubException as e:
+        print(f"Error retrieving pull request: {e}")
+        print("This may be due to insufficient token permissions. Ensure your workflow's permissions include access to pull requests.")
+        raise
+
     files = get_changed_files(pr)
+    if not files:
+        print("No changed files found in the pull request.")
+        return
 
-    # Send the files to OpenAI for review
     review = send_to_openai(files)
-
-    # Post the review as a comment on the pull request
     post_comment(pr, review)
 
 if __name__ == "__main__":
-    main()  # Execute the main function
+    main()
