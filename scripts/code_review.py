@@ -3,11 +3,10 @@ import json
 import textwrap
 from git import Repo
 from github import Github, GithubException
-import openai
+from openai import OpenAI
 
-# Set your OpenAI API key and define a token limit for chunking the code.
-openai.api_key = os.getenv("OPENAI_API_KEY")
-TOKEN_LIMIT = 3000  # Adjust this value as needed
+
+client = OpenAI() 
 
 def get_file_content(file_path):
     """Reads the content of a file."""
