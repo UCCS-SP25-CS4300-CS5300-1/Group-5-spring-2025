@@ -1,98 +1,131 @@
 import os
+import openai
 from github import Github
-from openai import OpenAI
+import git
+import json
+import textwrap
 
-def initialize():
-    try:
-        # Initialize OpenAI client
-        client = OpenAI(api_key=os.getenv('OPENAI_API_KEY'))
+#From https://medium.com/@owuordove/github-actions-building-an-end-to-end-ci-cd-pipeline-for-django-dbaaa20dc0ac#id_token=eyJhbGciOiJSUzI1NiIsImtpZCI6IjkxNGZiOWIwODcxODBiYzAzMDMyODQ1MDBjNWY1NDBjNmQ0ZjVlMmYiLCJ0eXAiOiJKV1QifQ.eyJpc3MiOiJodHRwczovL2FjY291bnRzLmdvb2dsZS5jb20iLCJhenAiOiIyMTYyOTYwMzU4MzQtazFrNnFlMDYwczJ0cDJhMmphbTRsamRjbXMwMHN0dGcuYXBwcy5nb29nbGV1c2VyY29udGVudC5jb20iLCJhdWQiOiIyMTYyOTYwMzU4MzQtazFrNnFlMDYwczJ0cDJhMmphbTRsamRjbXMwMHN0dGcuYXBwcy5nb29nbGV1c2VyY29udGVudC5jb20iLCJzdWIiOiIxMDA1ODc3MTYyNzE1Mzg2MzQ5MzYiLCJlbWFpbCI6ImFiaWdhaWxjb253YXkwN0BnbWFpbC5jb20iLCJlbWFpbF92ZXJpZmllZCI6dHJ1ZSwibmJmIjoxNzQxODQwNTM5LCJuYW1lIjoiQWJpZ2FpbCBDb253YXkiLCJwaWN0dXJlIjoiaHR0cHM6Ly9saDMuZ29vZ2xldXNlcmNvbnRlbnQuY29tL2EvQUNnOG9jS1VFNGxHOXduSjhLRFJKNHVtUGZMNFVGUWlPa1JDam5CUVlYN2hxR2xOTktxMkhRPXM5Ni1jIiwiZ2l2ZW5fbmFtZSI6IkFiaWdhaWwiLCJmYW1pbHlfbmFtZSI6IkNvbndheSIsImlhdCI6MTc0MTg0MDgzOSwiZXhwIjoxNzQxODQ0NDM5LCJqdGkiOiJjNGJhNmRkNDczZmIyNjVjY2EzZTZhZmExNDQ2Y2QzZmJlYWRkNWRkIn0.QLSAE9vlmm6x4I-G0jCO-x53YiRc5sPxLSaR4LV1XraVsu9wuVxbA_9g4Z62s19mR7-6QLq03P8QkOWKex0PFNzztmiOxZSlXws41Yc4llm-teGamIIYxbbmkEJVAufutzj8N0Beg9jVOr-_UBmQ6tCn3WuP6u-WxEQ4wfX0VjRssJWQz3DsVEkABjOXikeYPL9OHr3EWPD_6pCCWlt8Xnw1qfwzIvppfFqVTrikeAPyWv0DSw2rzu67sCXOQW_c_7PRgmxezx5cHIrwZ0uT49RCTHCrX5a0xAc-v9CqeKH2rbmHS96tJBnF9CruugeugtAE_jVsGU7P8ZalVtkDuQ
 
-        # Get GitHub token and repository info from environment variables
-        github_token = os.getenv('GITHUB_TOKEN')
-        if not github_token:
-            raise ValueError("GITHUB_TOKEN is not set")
+# Load OpenAI API key from environment
+openai.api_key = os.getenv('OPENAI_API_KEY')
 
-        repo_name = os.getenv('GITHUB_REPOSITORY')
-        if not repo_name:
-            raise ValueError("GITHUB_REPOSITORY is not set")
+# Set the maximum token limit for GPT-4
+TOKEN_LIMIT = 4000
 
-        pr_id = os.getenv('GITHUB_PR_ID')
-        if not pr_id:
-            raise ValueError("GITHUB_PR_ID is not set")
+def get_file_content(file_path):
+    """
+    This function reads the content of a file.
 
-        # Initialize Github instance
-        g = Github(github_token)
+    Args:
+        file_path (str): The path to the file.
 
-        return client, g, repo_name, pr_id
-    except Exception as e:
-        raise ValueError(f"Failed to initialize: {e}")
+    Returns:
+        str: The content of the file.
+    """
+    with open(file_path, 'r') as file:
+        return file.read()
 
-def get_repo_and_pull_request(g, repo_name, pr_id):
-    try:
-        repo = g.get_repo(repo_name)
-        pr = repo.get_pull(int(pr_id))
-        return repo, pr
-    except Exception as e:
-        raise ValueError(f"Failed to fetch repo or pull request: {e}")
+def get_changed_files(pr):
+    """
+    This function fetches the files that were changed in a pull request.
 
-def fetch_files_from_pr(pr):
-    try:
-        files = pr.get_files()
-        diff = ""
-        for file in files:
-            diff += f"File: {file.filename}\nChanges:\n{file.patch}\n\n"
-        return diff
-    except Exception as e:
-        raise ValueError(f"Failed to fetch files from PR: {e}")
+    Args:
+        pr (PullRequest): The pull request object.
 
-def request_code_review(diff, client):
-    try:
-        response = client.chat.completions.create(
-            model="gpt-4o",
+    Returns:
+        dict: A dictionary containing the file paths as keys and their content as values.
+    """
+    # Clone the repository and checkout the PR branch
+    repo = git.Repo.clone_from(pr.base.repo.clone_url, to_path='./repo', branch=pr.head.ref)
+
+    # Get the difference between the PR branch and the base branch
+    base_ref = f"origin/{pr.base.ref}"
+    head_ref = f"origin/{pr.head.ref}"
+    diffs = repo.git.diff(base_ref, head_ref, name_only=True).split('\n')
+
+    # Initialize an empty dictionary to store file contents
+    files = {}
+    for file_path in diffs:
+        try:
+            # Fetch each file's content and store it in the files dictionary
+            files[file_path] = get_file_content('./repo/' + file_path)
+        except Exception as e:
+            print(f"Failed to read {file_path}: {e}")
+
+    return files
+
+def send_to_openai(files):
+    """
+    This function sends the changed files to OpenAI for review.
+
+    Args:
+        files (dict): A dictionary containing the file paths as keys and their content as values.
+
+    Returns:
+        str: The review returned by OpenAI.
+    """
+    # Concatenate all the files into a single string
+    code = '\n'.join(files.values())
+
+    # Split the code into chunks that are each within the token limit
+    chunks = textwrap.wrap(code, TOKEN_LIMIT)
+
+    reviews = []
+    for chunk in chunks:
+        # Send a message to OpenAI with each chunk of the code for review
+        message = openai.ChatCompletion.create(
+            model="gpt-3.5-turbo",
             messages=[
-                {"role": "system", "content": "You are a helpful code reviewer."},
-                {"role": "user", "content": (
-                    "Please review the following code for potential issues or improvements: "
-                    "start with giving it a score out of 10, then if you're going to suggest changes please "
-                    "reference the code directly. Please list no more than 3 to 4 items but only if it is necessary:\n"
-                    f"{diff}"
-                )}
+                {
+                    "role": "user",
+                    "content": "You are assigned as a code reviewer. Your responsibility is to review the provided code and offer recommendations for enhancement. Identify any problematic code snippets, highlight potential issues, and evaluate the overall quality of the code you review:\n" + chunk
+                }
             ],
-            max_tokens=2048,
-            temperature=0.5
         )
-        return response.choices[0].message.content
 
-    except Exception as e:
-        raise ValueError(f"Failed to get code review from OpenAI: {e}")
+        # Add the assistant's reply to the list of reviews
+        reviews.append(message['choices'][0]['message']['content'])
 
-def post_review_comments(pr, review_comments):
-    try:
-        pr.create_issue_comment(review_comments)
-    except Exception as e:
-        raise ValueError(f"Failed to post review comments: {e}")
+    # Join all the reviews into a single string
+    review = "\n".join(reviews)
+
+    return review
+
+def post_comment(pr, comment):
+    """
+    This function posts a comment on the pull request with the review.
+
+    Args:
+        pr (PullRequest): The pull request object.
+        comment (str): The comment to post.
+    """
+    # Post the OpenAI's response as a comment on the PR
+    pr.create_issue_comment(comment)
 
 def main():
-    try:
-        # Initialize required variables
-        client, g, repo_name, pr_id = initialize()
+    """
+    The main function orchestrates the operations of:
+    1. Fetching changed files from a PR
+    2. Sending those files to OpenAI for review
+    3. Posting the review as a comment on the PR
+    """
+    # Get the pull request event JSON
+    with open(os.getenv('GITHUB_EVENT_PATH')) as json_file:
+        event = json.load(json_file)
+    
+    # Instantiate the Github object using the Github token
+    # and get the pull request object
+    pr = Github(os.getenv('GITHUB_TOKEN')).get_repo(event['repository']['full_name']).get_pull(event['number'])
 
-        # Get repository and pull request
-        repo, pr = get_repo_and_pull_request(g, repo_name, pr_id)
+    # Get the changed files in the pull request
+    files = get_changed_files(pr)
 
-        # Fetch files changed in the PR
-        diff = fetch_files_from_pr(pr)
+    # Send the files to OpenAI for review
+    review = send_to_openai(files)
 
-        # Request code review from OpenAI
-        review_comments = request_code_review(diff, client)
-
-        # Post the review comments as a GitHub PR comment
-        post_review_comments(pr, review_comments)
-
-        print("Code review posted successfully.")
-
-    except Exception as e:
-        print(f"Error: {e}")
+    # Post the review as a comment on the pull request
+    post_comment(pr, review)
 
 if __name__ == "__main__":
-    main()
+    main()  # Execute the main function
