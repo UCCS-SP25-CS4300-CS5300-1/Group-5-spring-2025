@@ -17,7 +17,7 @@ urlpatterns = [
 
     #FOR USER
     path('users/register/', views.register_view, name='register'),
-    path('profile/', views.user_profile,name='user_profile'),
+    path('users/profile/', views.user_profile,name='user_profile'),
     path('login/', auth_views.LoginView.as_view(), name='login'),
     #path('logout/', auth_views.LogoutView.as_view(), name='logout'),
     path('logout/', views.logoutUser, name='logout'),
