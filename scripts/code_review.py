@@ -11,7 +11,7 @@ import textwrap
 openai.api_key = os.getenv('OPENAI_API_KEY')
 
 # Set the maximum token limit for GPT-4
-TOKEN_LIMIT = 4000
+TOKEN_LIMIT = 50
 
 def get_file_content(file_path):
     """

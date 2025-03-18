@@ -1,37 +1,29 @@
 name: OpenAI Code Review
 
-permissions:
-  contents: read
-  pull-requests: write
-
 on:
-  pull_request:  
+  pull_request:
     branches:
       - main
       - ai_test
 
 jobs:
-  ai-code-review:
+  review:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout Repository  
+      - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Set up Python  
+      - name: Set up Python
         uses: actions/setup-python@v2
         with:
           python-version: 3.12.8
 
-      - name: Install Dependencies 
+      - name: Install dependencies
         run: |
-          python -m pip install --upgrade pip
-          pip install openai PyGithub GitPython  
+          pip install openai PyGithub GitPython
 
-      - name: Run AI Code Review
+      - name: Run review
         env:
-            OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
-            GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-
-        run: python scripts/code_review.py  # ✅ Runs your AI code review script
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+        run: python scripts/code_review.py
