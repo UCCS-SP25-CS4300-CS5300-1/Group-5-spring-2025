@@ -1,7 +1,7 @@
 from django.test import TestCase
 from django.core.exceptions import ValidationError
 from django.db import IntegrityError
-from .models import Facility, User
+from .models import *
 
 from django.urls import reverse
 from django.http import HttpResponse
