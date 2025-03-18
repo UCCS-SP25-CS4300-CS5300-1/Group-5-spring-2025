@@ -99,8 +99,8 @@ def register_view(request):
             form.save()
             return redirect("/")
     else:    
-        form = UserCreationForm()
-    return render(request, "home/templates/users/register.html", { "form": form})
+        form = CampUserCreationForm()
+    return render(request, "users/register.html", { "form": form})
 
 # this currently gets the users profile and outputs favorite locations
 # functionality to add amenities will be updated here
