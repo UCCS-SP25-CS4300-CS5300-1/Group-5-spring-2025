@@ -1,5 +1,9 @@
 name: OpenAI Code Review
 
+permissions:
+  contents: read
+  pull-requests: write
+
 on:
   pull_request:  
     branches:
@@ -12,7 +16,7 @@ jobs:
 
     steps:
       - name: Checkout Repository  
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
 
       - name: Set up Python  
         uses: actions/setup-python@v2

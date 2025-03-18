@@ -6,7 +6,9 @@ from github import Github, GithubException
 from openai import OpenAI
 
 
-client = OpenAI() 
+openai.api_key = os.getenv("OPENAI_API_KEY")
+TOKEN_LIMIT = 2048  
+
 
 def get_file_content(file_path):
     """Reads the content of a file."""
