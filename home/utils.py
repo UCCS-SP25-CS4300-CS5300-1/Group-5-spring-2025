@@ -4,6 +4,8 @@ from django.conf import settings
 # this is my api key for RIDB 
 RIDB_API_KEY = "3d213c37-c624-440f-aec2-68ac2728b395"
 
+# THIS NEEDS TO BE FIXED, RIGHT NOW, LOCATION IS ACTUALLY KEYWORD: HAVE TO COMPROMISE, MAKE USER INPUT STATE AS WELL FOR QUERY?
+# THEN HAVE TO PARSE QUERY... OR MAYBE INCORPORATE FILTERS? FORCE STATE AND RADIUS PARAMETERS... THEN USER ENTERS WHATEVER INTO SEARCH
 # returns all campsite based on user entered location (& later, radius)
 # for search/landing page
 def search_facilities(location, radius=5):
