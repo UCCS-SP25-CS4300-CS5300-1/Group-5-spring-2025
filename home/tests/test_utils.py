@@ -2,6 +2,7 @@ import unittest
 from unittest.mock import patch, MagicMock
 from home.utils import search_facilities, return_facility_detail, return_facility_address
 
+
 class TestUtils(unittest.TestCase):
     @patch('home.utils.requests.get')
     def test_search_facilities_success(self, mock_get):
