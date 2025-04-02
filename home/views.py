@@ -11,6 +11,7 @@ from .forms import CampUserCreationForm
 from home.models import Facility
 from home.utils import return_facility_detail, search_facilities
 from django.contrib.auth import logout
+from .forms import *
 
 
 
@@ -112,11 +113,15 @@ def user_profile(request):
     # retrieve favorited location IDs
     favorite_loc = prof.favorited_loc.all()
 
+    # retrieve user preferences, or create them if they don't exist yet
+    preferences, created = UserPreferences.objects.get_or_create(user=request.user)
+
     # context will be sent to the return request with the users profile and favorite locations
     # available locations are currently being set as a way to test adding favorite locations
     context = {
         'user_profile': prof,
         'favorite_loc': favorite_loc,
+        'preferences': preferences,
     }
 
     return render(request, 'users/profile.html', context)
@@ -129,3 +134,25 @@ def logoutUser(request):
     # after logging out returns user to landing page 
     return redirect('index')
  
+# this allows users to edit their user preferences
+@login_required
+def edit_preferences(request):
+    # get user
+    user = request.user
+
+    # get users preferences if they exist; if they dont, create them
+    preferences, created = UserPreferences.objects.get_or_create(user=user)
+
+    if request.method == "POST":
+        form = UserPreferenceForm(request.POST, instance=preferences)
+        if form.is_valid():
+            form.save()
+            return redirect("user_profile")
+    else:
+        form = UserPreferenceForm(instance=preferences)
+
+    return render(request, "users/edit_preferences.html", {"form": form})
+
+    
+
+

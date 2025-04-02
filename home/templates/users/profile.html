@@ -57,6 +57,30 @@
         <!-- Preferences Section -->
         <div class="card-footer text-center bg-light">
             <h2 class="mb-0">Preferences</h2>
+            <ul class="list-group" style="text-align: left;">
+                <li class="list-group-item">
+                    <strong>Include Campgrounds:</strong> {{ preferences.campground|yesno:"You Bet!,No Thanks" }}
+                </li>
+                <li class="list-group-item">
+                    <strong>Include Ranger Stations:</strong> {{ preferences.rangerstation|yesno:"You Bet!,No Thanks" }}
+                </li>
+                <li class="list-group-item">
+                    <strong>Include Hotels:</strong> {{ preferences.hotel|yesno:"You Bet!,No Thanks" }}
+                </li>
+                <li class="list-group-item">
+                    <strong>Include Trails:</strong> {{ preferences.trail|yesno:"You Bet!,No Thanks" }}
+                </li>
+                <li class="list-group-item">
+                    <strong>Include Reservable Sites:</strong> {{ preferences.reservable|yesno:"You Bet!,No Thanks" }}
+                </li>
+            </ul>
+        
+            <!-- Edit Preferences Button -->
+            <div class="mt-3">
+                <a href="{% url 'edit_preferences' %}" class="btn btn-warning">
+                    <i class="fas fa-edit"></i> Edit Preferences
+                </a>
+            </div>
         </div>
     </div>
 </div>
