@@ -48,9 +48,11 @@ class CampUser(AbstractUser):
 # A user profile that contains amenity preferences and favorite locations
 class UserProfile(models.Model):
     user = models.OneToOneField(CampUser, on_delete=models.CASCADE)
-    # amenity_pref = models.ManyToManyField('Amenity', blank=True)
     favorited_loc = models.ManyToManyField(Facility, blank=True)
 
     def __str__(self):
           return f"{self.user.username}'s Profile"
+    
+
+
     
