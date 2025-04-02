@@ -43,6 +43,7 @@ class CampUser(AbstractUser):
         blank=True
     )
     
+    # this line of code is unneeded but removing it breaks a lot of tests, need to redesign tests when get the chance
     preference = models.CharField(max_length=20)
 
 # A user profile that contains amenity preferences and favorite locations
@@ -54,5 +55,14 @@ class UserProfile(models.Model):
           return f"{self.user.username}'s Profile"
     
 
+# User preferences 
+class UserPreferences(models.Model):
+    # the related_name param makes it so CampUser model can access user preferences 
+    user = models.OneToOneField(CampUser, on_delete=models.CASCADE, related_name="preferences")
+    campground = models.BooleanField(default=True)
+    rangerstation = models.BooleanField(default=True)
+    hotel = models.BooleanField(default=True)
+    trail = models.BooleanField(default=True)
+    reservable = models.BooleanField(default=True)
 
     
