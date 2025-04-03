@@ -34,7 +34,10 @@ body.dark-mode .card {
 
 .btn-primary {
     --bs-btn-bg: #105c4a;
-    --bs-btn-border-color: #105c4a;;
+    --bs-btn-border-color: #105c4a;
+    font-family: "Nunito", sans-serif;
+    font-weight: 400;
+    font-style: normal;
 }
 
 .btn:hover {
@@ -166,3 +169,31 @@ p {
     font-weight: 400;
     font-style: normal;
 }
+
+div.filter-container {
+    background-color: #ff930e;
+    padding: 10px;
+    border-radius: 8px; 
+    display: flex;
+    font-family: "Nunito", sans-serif;
+    font-weight: 400;
+    font-style: normal;
+    justify-content: center;
+    align-items: center;
+    width: fit-content;
+
+}
+
+.search-and-filter-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    margin-top: 10px;
+}
+
+.form-check-input:checked {
+    background-color: #105c4a;
+    border-color: #105c4a;
+  }

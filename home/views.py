@@ -23,6 +23,7 @@ def index(request):
 def search_view(request):
     # Get location from search bar
     query = request.GET.get("q")  
+    
     campsites = []
 
     # if user input ok, search facilities based on query

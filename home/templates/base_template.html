@@ -38,12 +38,24 @@
 
       <div class="container d-flex justify-content-center align-items-center" style="height: 100px; position: relative;">
           <!-- Search Bar -->
-          <form class="col-12 col-md-6 col-lg-4" role="search" method="GET" action="{% url 'search' %}">
+          <div class="search-and-filter-container">
+            <form class="col-12 col-md-6 col-lg-4" role="search" method="GET" action="{% url 'search' %}">
               <input type="text" name="q" class="form-control text-center" placeholder="Search For A Campsite..." aria-label="Search" style="font-family: Nunito, sans-serif; font-weight:400; font-style: normal;">
-          </form>
+            </form>
+
+              <!-- Filter Preferences Button Switch! -->
+              {% if user.is_authenticated %}
+              <div class="filter-container p-2 mt-2">
+                <div class="form-check form-switch mt-2">
+                  <input class="form-check-input" type="checkbox" id="applyFilters" name="applyFilters">
+                  <label class="form-check-label" style="color: white;" for="applyFilters">Apply My Preferences</label>
+                </div>
+              </div>
+              {% endif %}
+            </div>
           <!-- Dark Mode Toggle - Positioned on Top of Search Bar -->
           <button id="darkModeToggle" class="btn btn-primary rounded-circle"
-              style="position: absolute; top: -30px; left: 50%; transform: translateX(-50%);">
+              style="position: absolute; top: -50px; left: 50%; transform: translateX(-50%);">
               <i id="darkModeIcon" class="fas fa-moon"></i>
           </button>
       </div>
