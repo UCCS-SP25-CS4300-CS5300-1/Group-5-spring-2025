@@ -48,7 +48,7 @@ jobs:
       - name: Install Dependencies
         run: |
           pip install -r requirements.txt
-          pip install uvx
+          pip install uv
 
       - name: Run Bandit Security Scan
         run: uvx bandit -r .
