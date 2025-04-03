@@ -28,8 +28,9 @@ jobs:
         ### displays changes from prior to current in the pipeline logs
       - name: Generate requirements.txt from source
         run: |
-          uvx pipreqs --force .
-          diff -u requirements.txt requirements_generated.txt || echo "Dependencies updated"
+          uvx pipreqs --savepath pipreqs.txt .
+          bash pipreqs.sh pipreqs.txt
+          diff -u requirements.txt pipreqs.txt || echo "Dependencies updated"
 
   security-audit:
     name: Security Audits and Testing
