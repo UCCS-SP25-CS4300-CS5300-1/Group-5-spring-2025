@@ -2,6 +2,7 @@ from django.db import models
 from django.contrib.auth.models import AbstractUser
 
 # Create your models here.
+# *** NEED TO ADD RESERVABLE & URL ATTRIBUTES... MAYBE ALSO INCORPORATE MEDIA TOO ***
 class Facility(models.Model):
     name = models.CharField(max_length=255)
     # for now, location will be character field.... address, city, state? from facility RIDB api schema
@@ -63,6 +64,7 @@ class UserPreferences(models.Model):
     rangerstation = models.BooleanField(default=True)
     hotel = models.BooleanField(default=True)
     trail = models.BooleanField(default=True)
+    facility = models.BooleanField(default=True)
     reservable = models.BooleanField(default=True)
 
     

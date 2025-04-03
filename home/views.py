@@ -23,15 +23,21 @@ def index(request):
 def search_view(request):
     # Get location from search bar
     query = request.GET.get("q")  
+
+    # get user preferences
+    # this is done by accessing the applyFilters id of the switch on the html page, 
+    # getting its value, and testing if its equal to "on"; false means no, true means yes
+    apply_filters = request.GET.get("applyFilters") == "on"
+    print(apply_filters)
     
     campsites = []
 
     # if user input ok, search facilities based on query
     # this calls search_facilities function in utils.py, which makes the API request. 
     if query:
-        campsites = search_facilities(query)
+        campsites = search_facilities(query, user=request.user if apply_filters else None)
 
-    return render(request, "search_results.html", {"campsites": campsites, "query": query})
+    return render(request, "search_results.html", {"campsites": campsites, "query": query, "apply_filters": apply_filters})
 
 # view for facility detail 
 def facility_detail(request, facility_id):

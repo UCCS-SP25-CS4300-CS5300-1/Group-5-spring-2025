@@ -1,5 +1,6 @@
 import requests
 from django.conf import settings
+from .models import *
 
 # this is my api key for RIDB 
 RIDB_API_KEY = "3d213c37-c624-440f-aec2-68ac2728b395"
@@ -8,7 +9,7 @@ RIDB_API_KEY = "3d213c37-c624-440f-aec2-68ac2728b395"
 # THEN HAVE TO PARSE QUERY... OR MAYBE INCORPORATE FILTERS? FORCE STATE AND RADIUS PARAMETERS... THEN USER ENTERS WHATEVER INTO SEARCH
 # returns all campsite based on user entered location (& later, radius)
 # for search/landing page
-def search_facilities(location, radius=5):
+def search_facilities(location, user, radius=5):
     """Fetch campsites from RIDB API based on user location."""
     # get base url based on what we want from api: in this case, facilities 
     base_url = "https://ridb.recreation.gov/api/v1/facilities"
@@ -21,7 +22,6 @@ def search_facilities(location, radius=5):
         "limit": 10,  # Limit results
         "apikey": RIDB_API_KEY,
         "radius": radius,
-        #"state": 'CO',
     }
 
     # get response from API
@@ -31,8 +31,38 @@ def search_facilities(location, radius=5):
     # if response was successful, return the data
     if response.status_code == 200:
         # RECDATA is the title for the response data
-        return response.json().get("RECDATA", [])  # List of campsites
+        # will be returned in the form of a list of dictionaries
+        facilities = response.json().get("RECDATA", [])  # List of campsites
+
+        # apply user preferences as filter if user is authenticated
+        if user and user.is_authenticated:
+      
+            try:
+                # get user preferences
+                preferences = user.preferences
+                # loop through each return item (facility) in list of dictionary & 
+                # see if it matches preference
+                # done by boolean values; for example, if preferences.campground (=True) and Campground in facility["FacilityTypeDescription"] (=True)
+                # then this condition is true and the facility is kept in the list
+                # thus, each facility is kept in the new list if AT LEAST ONE PREFERENCE MATCHES
+                facilities = [ 
+                    facility for facility in facilities
+                    if (preferences.campground and "Campground" in facility["FacilityTypeDescription"])
+                    or (preferences.trail and "Trail" in facility["FacilityTypeDescription"])
+                    or (preferences.hotel and "Hotel" in facility["FacilityTypeDescription"])
+                    or (preferences.rangerstation and "Ranger Station" in facility["FacilityTypeDescription"])
+                    or (preferences.facility and "Facility" in facility["FacilityTypeDescription"])
+                    or (preferences.reservable and facility.get("Reservable", False))
+
+                ]
+  
+            # take into account if user preferences don't exist
+            except UserPreferences.DoesNotExist:
+                pass
+            
+        return facilities
     else:
+
         return []
     
 

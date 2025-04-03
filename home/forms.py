@@ -15,4 +15,4 @@ class CampUserCreationForm(UserCreationForm):
 class UserPreferenceForm(ModelForm):
     class Meta:
         model = UserPreferences
-        fields = ['campground', 'rangerstation', 'hotel', 'trail', 'reservable' ]
+        fields = ['campground', 'rangerstation', 'hotel', 'trail', 'facility', 'reservable' ]
