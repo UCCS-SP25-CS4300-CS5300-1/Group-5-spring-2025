@@ -1,0 +1,40 @@
+{% extends "base_user_template.html" %}
+{% load static %}
+{% block content %}
+
+<!-- doing extra css to override the body element from base, since i want diff bg image -->
+{% block extra_css %}
+    <style>
+        body {
+            background: url("{% static 'images/test.png' %}");
+            background-size: cover;
+            background-attachment: fixed;
+            background-repeat: no-repeat;
+            background-position: center;
+        }
+    </style>
+{% endblock %}
+
+<div class="container mt-4">
+    <div class="card shadow-lg">
+        <div class="card-header bg-primary text-white text-center">
+            <h2 class="mb-0">Edit Preferences</h2>
+            <p> Here you can edit your profile preferences. After choosing what you want to include, you can search for sites based on your preferences!</p>
+        </div>
+
+        <div class="card-body">
+            <form method="POST">
+                {% csrf_token %}
+                {{ form.as_p }}
+
+                <div class="text-center">
+                    <button type="submit" class="btn btn-success">
+                        <i class="fas fa-save"></i> Save Preferences
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

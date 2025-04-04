@@ -11,6 +11,7 @@ from .forms import CampUserCreationForm
 from home.models import Facility
 from home.utils import return_facility_detail, search_facilities
 from django.contrib.auth import logout
+from .forms import *
 
 
 
@@ -22,14 +23,20 @@ def index(request):
 def search_view(request):
     # Get location from search bar
     query = request.GET.get("q")  
+
+    # get user preferences
+    # this is done by accessing the applyFilters id of the switch on the html page, 
+    # getting its value, and testing if its equal to "on"; false means no, true means yes
+    apply_filters = request.GET.get("applyFilters") == "on"
+    
     campsites = []
 
     # if user input ok, search facilities based on query
     # this calls search_facilities function in utils.py, which makes the API request. 
     if query:
-        campsites = search_facilities(query)
+        campsites = search_facilities(query, user=request.user if apply_filters else None)
 
-    return render(request, "search_results.html", {"campsites": campsites, "query": query})
+    return render(request, "search_results.html", {"campsites": campsites, "query": query, "apply_filters": apply_filters})
 
 # view for facility detail 
 def facility_detail(request, facility_id):
@@ -51,9 +58,21 @@ def facility_detail(request, facility_id):
         city = "N/A"
         state = "N/A"
         address = 'N/A'
+
+    # get facility url
+    # the return_facility_url returns the RECDATA that contains JSON data in the form
+    # EntityLinkID:... LinkType:... ... URL:
+    # want to access the URL attribute, so thats why syntax url[0].get("URL") is done
+    # we do this as an exception because the return_facility_url may return no data with 
+    # a successful response code still, so theres not index to index to; hence IndexError
+    try:
+        url = return_facility_url(facility_id)
+        url = url[0].get("URL")
+    except IndexError:
+        url = ""
   
 
-    return render(request, "facility_detail.html", {"campsite": campsite, "city": city, "state": state, "address": address})
+    return render(request, "facility_detail.html", {"campsite": campsite, "city": city, "state": state, "address": address, 'url': url})
 
 # function for saving a facility to a users profile
 def save_facility(request, facility_id):
@@ -76,7 +95,9 @@ def save_facility(request, facility_id):
             "ada_accessibility": request.GET.get("ada"),
             "phone": request.GET.get("phone"),
             "email": request.GET.get("email"),
-            "description": request.GET.get("description")
+            "description": request.GET.get("description"),
+            "reservable": request.GET.get("reservable"),
+            "url": request.GET.get("url")
             
         }
     )
@@ -112,37 +133,15 @@ def user_profile(request):
     # retrieve favorited location IDs
     favorite_loc = prof.favorited_loc.all()
 
-    # getting previously favorited locations
-    # Piper editing: dont need to loop through favorite_loc; favorite_loc holds all facility instances
-    '''
-    favorite_loc = []
-    for loc in favorited_loc_id:
-        loc_details = return_facility_detail(loc.f_id)
-        if loc_details:
-            favorite_loc.append(loc_details)'
-    '''
-
-    # getting available locations to prepare to add new favorites
-    location = 'denver'
-    available_loc = search_facilities(location)
-
-    # adding new favorite campsites
-    if request.method == 'POST':
-        favorite_ids = request.POST.getlist('favorite_loc')
-        for new_loc_id in favorite_ids:
-            try:
-                loc = Facility.objects.get(f_id=new_loc_id)
-                prof.favorited_loc.add(loc)
-            except Facility.DoesNotExist:
-                print(f"Facility with f_id {new_loc_id} does not exist.")
-        return redirect('user_profile')    
+    # retrieve user preferences, or create them if they don't exist yet
+    preferences, created = UserPreferences.objects.get_or_create(user=request.user)
 
     # context will be sent to the return request with the users profile and favorite locations
     # available locations are currently being set as a way to test adding favorite locations
     context = {
         'user_profile': prof,
         'favorite_loc': favorite_loc,
-        'available_loc': available_loc, 
+        'preferences': preferences,
     }
 
     return render(request, 'users/profile.html', context)
@@ -155,3 +154,25 @@ def logoutUser(request):
     # after logging out returns user to landing page 
     return redirect('index')
  
+# this allows users to edit their user preferences
+@login_required
+def edit_preferences(request):
+    # get user
+    user = request.user
+
+    # get users preferences if they exist; if they dont, create them
+    preferences, created = UserPreferences.objects.get_or_create(user=user)
+
+    if request.method == "POST":
+        form = UserPreferenceForm(request.POST, instance=preferences)
+        if form.is_valid():
+            form.save()
+            return redirect("user_profile")
+    else:
+        form = UserPreferenceForm(instance=preferences)
+
+    return render(request, "users/edit_preferences.html", {"form": form})
+
+    
+
+

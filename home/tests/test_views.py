@@ -81,7 +81,9 @@ class ViewTests(TestCase):
             "ada": "Yes",
             "phone": "1234567890",
             "email": "camp@example.com",
-            "description": "A nice camp."
+            "description": "A nice camp.",
+            "reservable": True,
+            "url": "www.url.com",
         }
         url = reverse('save_facility', kwargs={'facility_id': facility_id})
         response = self.client.get(url, data=get_params)
@@ -125,33 +127,7 @@ class ViewTests(TestCase):
         # Check that context contains the expected keys.
         self.assertIn('user_profile', response.context)
         self.assertIn('favorite_loc', response.context)
-        self.assertIn('available_loc', response.context)
-        self.assertEqual(response.context.get('available_loc'), [{'name': 'Camp A'}])
-        mock_search_facilities.assert_called_once_with('denver')
 
-    def test_user_profile_view_post_add_favorite(self):
-        self.client.login(username=self.test_username, password=self.test_password)
-        # Create a facility in the DB so it exists.
-        facility = Facility.objects.create(
-            f_id="999",
-            name="Favorite Camp",
-            location="Denver",
-            type="Campground",
-            accessibility_txt="Accessible",
-            ada_accessibility="Yes",
-            phone="1234567890",
-            email="fav@example.com",
-            description="A favorite camp."
-        )
-        profile = UserProfile.objects.get(user=self.user)
-        self.assertNotIn(facility, profile.favorited_loc.all())
-        url = reverse('user_profile')
-        # Simulate POST with favorite_loc list.
-        response = self.client.post(url, data={'favorite_loc': ["999"]})
-        self.assertEqual(response.status_code, 302)
-        self.assertRedirects(response, reverse('user_profile'))
-        profile.refresh_from_db()
-        self.assertIn(facility, profile.favorited_loc.all())
 
     def test_logoutUser_view(self):
         self.client.login(username=self.test_username, password=self.test_password)

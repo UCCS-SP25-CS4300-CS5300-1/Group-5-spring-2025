@@ -11,7 +11,7 @@ class TestUtils(unittest.TestCase):
         mock_response.json.return_value = {"RECDATA": [{"name": "Camp A"}]}
         mock_get.return_value = mock_response
 
-        result = search_facilities("Denver")
+        result = search_facilities("Denver", user=False)
         self.assertEqual(result, [{"name": "Camp A"}])
 
     @patch('home.utils.requests.get')
@@ -20,7 +20,7 @@ class TestUtils(unittest.TestCase):
         mock_response = MagicMock(status_code=404)
         mock_get.return_value = mock_response
 
-        result = search_facilities("Denver")
+        result = search_facilities("Denver", user=False)
         self.assertEqual(result, [])
 
     @patch('home.utils.requests.get')
