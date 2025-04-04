@@ -28,7 +28,6 @@ def search_view(request):
     # this is done by accessing the applyFilters id of the switch on the html page, 
     # getting its value, and testing if its equal to "on"; false means no, true means yes
     apply_filters = request.GET.get("applyFilters") == "on"
-    print(apply_filters)
     
     campsites = []
 
@@ -59,9 +58,19 @@ def facility_detail(request, facility_id):
         city = "N/A"
         state = "N/A"
         address = 'N/A'
+
+    # get facility url
+    # the return_facility_url returns the RECDATA that contains JSON data in the form
+    # EntityLinkID:... LinkType:... ... URL:
+    # want to access the URL attribute, so thats why syntax url[0].get("URL") is done
+    try:
+        url = return_facility_url(facility_id)
+        url = url[0].get("URL")
+    except IndexError:
+        url = ""
   
 
-    return render(request, "facility_detail.html", {"campsite": campsite, "city": city, "state": state, "address": address})
+    return render(request, "facility_detail.html", {"campsite": campsite, "city": city, "state": state, "address": address, 'url': url})
 
 # function for saving a facility to a users profile
 def save_facility(request, facility_id):
@@ -84,7 +93,9 @@ def save_facility(request, facility_id):
             "ada_accessibility": request.GET.get("ada"),
             "phone": request.GET.get("phone"),
             "email": request.GET.get("email"),
-            "description": request.GET.get("description")
+            "description": request.GET.get("description"),
+            "reservable": request.GET.get("reservable"),
+            "url": request.GET.get("url")
             
         }
     )

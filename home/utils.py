@@ -52,7 +52,7 @@ def search_facilities(location, user, radius=5):
                     or (preferences.hotel and "Hotel" in facility["FacilityTypeDescription"])
                     or (preferences.rangerstation and "Ranger Station" in facility["FacilityTypeDescription"])
                     or (preferences.facility and "Facility" in facility["FacilityTypeDescription"])
-                    or (preferences.reservable and facility.get("Reservable", False))
+                    or (preferences.reservable and facility.get("Reservable"))
 
                 ]
   
@@ -109,3 +109,23 @@ def return_facility_address(facility_id):
         return response.json().get("RECDATA", [])
     else:
         return {}
+    
+# returns facility website url
+# needs own def since grabbing the url consists of diff request url
+def return_facility_url(facility_id):
+
+    base_url = f"https://ridb.recreation.gov/api/v1/facilities/{facility_id}/links"
+
+    params = {"facilityID": facility_id,
+              "apikey": RIDB_API_KEY}
+
+    response = requests.get(base_url, params=params)
+
+    if response.status_code == 200:
+        return response.json().get("RECDATA", [])
+    else:
+        return {}
+
+
+
+

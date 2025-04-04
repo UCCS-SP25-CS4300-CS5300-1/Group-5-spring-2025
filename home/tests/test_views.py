@@ -81,7 +81,9 @@ class ViewTests(TestCase):
             "ada": "Yes",
             "phone": "1234567890",
             "email": "camp@example.com",
-            "description": "A nice camp."
+            "description": "A nice camp.",
+            "reservable": True,
+            "url": "www.url.com",
         }
         url = reverse('save_facility', kwargs={'facility_id': facility_id})
         response = self.client.get(url, data=get_params)
