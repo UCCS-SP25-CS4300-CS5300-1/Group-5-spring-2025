@@ -13,6 +13,15 @@ from home.utils import return_facility_detail, search_facilities
 from django.contrib.auth import logout
 
 
+#FOR AI STUFF
+import openai
+from django.http import JsonResponse
+from django.utils.decorators import method_decorator
+from .models import TripDetails
+from datetime import datetime
+from .forms import TripDetailsForm
+
+
 
 # Create your views here.
 def index(request):
@@ -155,3 +164,57 @@ def logoutUser(request):
     # after logging out returns user to landing page 
     return redirect('index')
  
+
+
+@login_required
+def create_trip_async(request, facility_id):
+    if request.method == 'POST':
+        facility = get_object_or_404(Facility, id=facility_id)
+        form = TripDetailsForm(request.POST)
+        if form.is_valid():
+            trip_data = form.cleaned_data
+            start_date = trip_data['start_date']
+            end_date = trip_data['end_date']
+            number_of_people = trip_data['number_of_people']
+            
+            # Generate packing list using OpenAI
+            prompt = (
+                f"Generate a packing list for {number_of_people} people camping at {facility.name} "
+                f"from {start_date} to {end_date}. Focus on essentials. Give response in a comma separated list"
+            )
+            try:
+                openai.api_key = settings.OPENAI_API_KEY
+                ai_response = openai.ChatCompletion.create(
+                    model="gpt-4",
+                    messages=[{"role": "user", "content": prompt}],
+                    temperature=0.7
+                )
+                packing_list = ai_response.choices[0].message.content.strip()
+            except Exception as e:
+                packing_list = "Tent, sleeping bag, food, water, flashlight"  # fallback
+            
+            # Store the trip preview data in session
+            request.session['trip_preview'] = {
+                'facility_id': facility.id,
+                'facility_name': facility.name,
+                'start_date': str(start_date),
+                'end_date': str(end_date),
+                'number_of_people': number_of_people,
+                'packing_list': packing_list,
+            }
+            
+            # Return the URL for the trip preview page
+            return JsonResponse({'success': True, 'preview_url': '/trip/preview/'})
+        else:
+            return JsonResponse({'success': False, 'error': form.errors.as_json()})
+    return JsonResponse({'success': False, 'error': 'Invalid request'})
+
+
+
+def trip_details(request):
+
+ # Retrieve the trip preview data from the session
+    trip_preview = request.session.get('trip_preview', {})
+    # Optionally clear the session data if no longer needed:
+    # request.session.pop('trip_preview', None)
+    return render(request, 'users/trip_details.html', {'trip_preview': trip_preview})

@@ -1,0 +1,13 @@
+{% extends "base_user_template.html" %}
+{% load static %}
+{% block content %}
+
+<div class="container mt-4">
+    <!-- Profile Header -->
+    <div class="card shadow-lg">
+        <div class="card-header bg-primary text-white text-center">
+            <h1 class="mb-0">Packing list</h1>
+        </div>
+</div>
+{% endblock %}
+path('trip_details/', views.trip_details, name='trip_details'),

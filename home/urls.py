@@ -15,6 +15,9 @@ urlpatterns = [
     path("facility/<str:facility_id>/", views.facility_detail, name="facility_detail"),
     path("save/<str:facility_id>/", views.save_facility, name="save_facility"),
 
+    path('trip_details/', views.trip_details, name='trip_details'),
+
+
     #FOR USER
     path('register/', views.register_view, name='register'),
     path('profile/', views.user_profile,name='user_profile'),

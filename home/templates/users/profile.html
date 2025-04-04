@@ -2,6 +2,14 @@
 {% load static %}
 {% block content %}
 
+<!-- jQuery (required for Bootstrap 4) -->
+<script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+<!-- Popper.js (for Bootstrap 4) -->
+<script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"></script>
+<!-- Bootstrap JS -->
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+
+
 <!-- doing extra css to override the body element from base, since i want diff bg image -->
 {% block extra_css %}
     <style>
@@ -40,7 +48,12 @@
                                 <a href="{% url 'facility_detail' campsite.f_id %}" class="btn btn-info">
                                     <i class="fas fa-info-circle"></i> View Details
                                 </a>
-                                <a href="" class="btn btn-success">
+                                <!-- Update the Let's Pack button to trigger the modal -->
+                                <a href="#" 
+                                   class="btn btn-success lets-pack-btn" 
+                                   data-toggle="modal" 
+                                   data-target="#tripModal" 
+                                   data-facility-id="{{ campsite.id }}">
                                     <i class="fas fa-suitcase"></i> Let's Pack!
                                 </a>
                             </div>
@@ -60,6 +73,77 @@
         </div>
     </div>
 </div>
+
+<!-- Modal for Trip Details -->
+<div class="modal fade" id="tripModal" tabindex="-1" role="dialog" aria-labelledby="tripModalLabel" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <form id="tripDetailsForm">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="tripModalLabel">Trip Details</h5>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div class="modal-body">
+            <!-- Hidden input to store the facility id -->
+            <input type="hidden" name="facility_id" id="facility_id" value="">
+            <div class="form-group">
+                <label for="start_date">Start Date:</label>
+                <input type="date" class="form-control" name="start_date" id="start_date" required>
+            </div>
+            <div class="form-group">
+                <label for="end_date">End Date:</label>
+                <input type="date" class="form-control" name="end_date" id="end_date" required>
+            </div>
+            <div class="form-group">
+                <label for="number_of_people">Number of People:</label>
+                <input type="number" class="form-control" name="number_of_people" id="number_of_people" required min="1">
+            </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+          <button type="submit" class="btn btn-primary">Create Trip</button>
+        </div>
+      </div>
+    </form>
+  </div>
 </div>
+
+<!-- JavaScript to handle modal population and AJAX form submission -->
+<script>
+$(document).ready(function(){
+    // When a Let's Pack button is clicked, store its facility id in the modal hidden input
+    $('.lets-pack-btn').on('click', function(){
+        var facilityId = $(this).data('facility-id');
+        $('#facility_id').val(facilityId);
+    });
+
+    // Handle the form submission with AJAX
+    $('#tripDetailsForm').on('submit', function(e){
+        e.preventDefault();
+        var formData = $(this).serialize();
+        var facilityId = $('#facility_id').val();
+        // Build the URL for the asynchronous trip creation endpoint
+        var url = "/trip/create/" + facilityId + "/";
+        $.ajax({
+            type: "POST",
+            url: url,
+            data: formData,
+            headers: {'X-CSRFToken': '{{ csrf_token }}'},
+            success: function(response) {
+                if(response.success){
+                    window.location.href = response.preview_url;
+                } else {
+                    alert("Error: " + response.error);
+                }
+            },
+            error: function(){
+                alert("An error occurred. Please try again.");
+            }
+        });
+    });
+});
+</script>
 
 {% endblock %}
