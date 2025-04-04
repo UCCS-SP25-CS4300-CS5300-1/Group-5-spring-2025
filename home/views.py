@@ -96,7 +96,7 @@ def save_facility(request, facility_id):
             "phone": request.GET.get("phone"),
             "email": request.GET.get("email"),
             "description": request.GET.get("description"),
-            "reservable": request.GET.get("reservable"),
+            "reservable": (request.GET.get("reservable", "").lower()) == 'true',
             "url": request.GET.get("url")
             
         }
