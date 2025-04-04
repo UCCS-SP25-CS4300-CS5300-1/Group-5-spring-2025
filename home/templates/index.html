@@ -33,7 +33,6 @@
 
     // Defining Custom Icon-Marker
     var gpsIcon = L.icon({
-        iconUrl: "{% static 'images/red-marker.png' %}",
         iconSize: [38, 40],
         iconAnchor: [22, 38],
         popupAnchor: [-3, -76],
@@ -54,15 +53,15 @@
                 function(position) {
                     var lat = position.coords.latitude;
                     var lon = position.coords.longitude;
-                    var accuracy = position.coords.accuracy;
+                    var radiusGPS = 40233;
 
                     // Add a marker at the user's location
-                    var userMarker = L.marker([lat, lon], {icon: gpsIcon}).addTo(map)
-                        .bindPopup("<b>Your Location</b><br>Latitude: " + lat.toFixed(2) + "<br>Longitude: " + lon.toFixed(2) + "<br>Accuracy: " + accuracy + " meters.")
+                    var userMarker = L.marker([lat, lon]).addTo(map)
+                        .bindPopup("<b>Your Location</b><br>Latitude: " + lat.toFixed(2) + "<br>Longitude: " + lon.toFixed(2) + "<br>Radius: 25 Mile.")
                         .openPopup();
 
                     // Add a circle to represent the accuracy
-                    var accuracyCircle = L.circle([lat, lon], { radius: accuracy }).addTo(map);
+                    var accuracyCircle = L.circle([lat, lon], { radius: radiusGPS }).addTo(map);
 
                     // Center the map on the user's location
                     map.setView([lat, lon], 13);

@@ -45,6 +45,10 @@
     }
 </style>
 
+<div class="d-flex justify-content-center">
+    <button onclick="locateUser()" class="btn btn-primary">Show My Location</button>
+</div>
+
 
 <script>
     document.addEventListener("DOMContentLoaded", function () {
@@ -68,6 +72,34 @@
             {% endfor %}
         ];
 
+        // Function to locate the user and add a marker
+    function locateUser() {
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(
+                function(position) {
+                    var lat = position.coords.latitude;
+                    var lon = position.coords.longitude;
+                    var radiusGPS = 40233;
+
+                    // Add a marker at the user's location
+                    var userMarker = L.marker([lat, lon]).addTo(map)
+                        .bindPopup("<b>Your Location</b><br>Latitude: " + lat.toFixed(2) + "<br>Longitude: " + lon.toFixed(2) + "<br>Radius: 1 Mile.")
+                        .openPopup();
+
+                    // Add a circle to represent the accuracy
+                    var accuracyCircle = L.circle([lat, lon], { radius: radiusGPS }).addTo(map);
+
+                    // Center the map on the user's location
+                    map.setView([lat, lon], 13);
+                },
+                function(error) {
+                    alert("Error retrieving location: " + error.message);
+                }
+            );
+        } else {
+            alert("Geolocation is not supported by this browser.");
+        }
+    }
         // Add markers to the map
         campsites.forEach(function (site) {
             if (site.lat && site.lon) {
@@ -77,6 +109,7 @@
             }
         });
     });
+
 </script>
 
 
