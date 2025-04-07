@@ -41,6 +41,7 @@ jobs:
   dependency-check:
     name: Dependency Audit & Update
     runs-on: ubuntu-latest
+    needs: test-coverage
     steps:
       - name: Checkout Code
         uses: actions/checkout@v3
