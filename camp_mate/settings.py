@@ -20,6 +20,9 @@ OPENAI_API_KEY="sk-proj-XSSTBPhbnDWelaqVHkmor-6Kmd4HLP4FNf7-AO522JY6SyIMOCc2KW9C
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+STATIC_ROOT = BASE_DIR / 'home/static' ## not sure if correct.. 
+                                       ### fix for issues in collect static
+
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/4.2/howto/deployment/checklist/
