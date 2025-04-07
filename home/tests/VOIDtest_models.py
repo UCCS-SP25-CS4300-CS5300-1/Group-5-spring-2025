@@ -3,8 +3,12 @@ from django.core.exceptions import ValidationError
 from django.db import IntegrityError
 from django.urls import reverse
 from django.contrib.auth import get_user_model
-from home.models import Facility
+from home.models import Facility, TripDetails, UserProfile
 from home.forms import CampUserCreationForm
+from django.contrib.auth.models import User  # make sure this is imported
+
+
+
 
 class FacilityModelTest(TestCase):
     def setUp(self):
@@ -90,3 +94,51 @@ class RegisterTests(TestCase):
         
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, '<form')
+
+
+class TripDetailsModelTest(TestCase):
+    def setUp(self):
+        # Create a User and related UserProfile
+        self.user = User.objects.create_user(username='testuser', password='password')
+        self.user_profile = UserProfile.objects.create(user=self.user)
+
+        # Create a Facility
+        self.facility = Facility.objects.create(
+            f_id='123ABC',
+            name='Test Campground',
+            location='Mountains'
+        )
+
+    def test_create_trip_details(self):
+        trip = TripDetails.objects.create(
+            user=self.user_profile,
+            facility=self.facility,
+            start_date=date(2025, 6, 1),
+            end_date=date(2025, 6, 5),
+            number_of_people=4,
+            packing_list='Tent, Sleeping Bag, Water Bottle'
+        )
+
+        self.assertEqual(trip.user, self.user_profile)
+        self.assertEqual(trip.facility, self.facility)
+        self.assertEqual(trip.number_of_people, 4)
+        self.assertEqual(trip.packing_list, 'Tent, Sleeping Bag, Water Bottle')
+
+    def test_default_number_of_people(self):
+        trip = TripDetails.objects.create(
+            user=self.user_profile,
+            facility=self.facility,
+            start_date=date(2025, 7, 1),
+            end_date=date(2025, 7, 3),
+        )
+        self.assertEqual(trip.number_of_people, 1)
+
+    def test_str_representation(self):
+        trip = TripDetails.objects.create(
+            user=self.user_profile,
+            facility=self.facility,
+            start_date=date(2025, 8, 1),
+            end_date=date(2025, 8, 2),
+        )
+        expected_str = f"{self.user.username}'s Trip to {self.facility.name} on {trip.start_date}"
+        self.assertEqual(str(trip), expected_str)

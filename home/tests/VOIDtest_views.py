@@ -3,6 +3,7 @@ from django.urls import reverse
 from django.contrib.auth import get_user_model
 from home.models import Facility, UserProfile
 from unittest.mock import patch, MagicMock
+from django.contrib.auth.models import User  
 
 class ViewTests(TestCase):
 
@@ -162,3 +163,98 @@ class ViewTests(TestCase):
         # After logging out, accessing a login_required view should not return 200.
         response2 = self.client.get(reverse('user_profile'))
         self.assertNotEqual(response2.status_code, 200)
+
+
+
+class TripViewsTest(TestCase):
+    def setUp(self):
+        self.client = Client()
+        self.user = User.objects.create_user(username='testuser', password='testpass')
+        self.user_profile = UserProfile.objects.create(user=self.user)
+        self.facility = Facility.objects.create(f_id='FAC123', name='Cool Campground', location='Forest')
+        self.facility_id = self.facility.id
+
+    def login(self):
+        self.client.login(username='testuser', password='testpass')
+
+    @patch('users.views.openai.ChatCompletion.create')
+    def test_create_trip_async_success(self, mock_openai):
+        self.login()
+        mock_openai.return_value.choices = [type('obj', (object,), {
+            'message': type('msg', (object,), {'content': 'Tent, food, water'})
+        })]
+
+        url = reverse('create_trip_async', args=[self.facility_id])
+        data = {
+            'start_date': '2025-06-01',
+            'end_date': '2025-06-03',
+            'number_of_people': 2,
+        }
+        response = self.client.post(url, data)
+        self.assertRedirects(response, reverse('trip_preview'))
+
+        trip = TripDetails.objects.get(user=self.user_profile)
+        self.assertEqual(trip.facility, self.facility)
+        self.assertEqual(trip.number_of_people, 2)
+        self.assertIn('trip_preview_id', self.client.session)
+
+    def test_trip_preview_view(self):
+        self.login()
+        trip = TripDetails.objects.create(
+            user=self.user_profile,
+            facility=self.facility,
+            start_date='2025-06-01',
+            end_date='2025-06-02',
+            packing_list='Tent, water'
+        )
+        session = self.client.session
+        session['trip_preview_id'] = trip.id
+        session.save()
+
+        response = self.client.get(reverse('trip_preview'))
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'Tent')
+
+    def test_confirm_trip_clears_session(self):
+        self.login()
+        trip = TripDetails.objects.create(
+            user=self.user_profile,
+            facility=self.facility,
+            start_date='2025-06-01',
+            end_date='2025-06-03',
+        )
+        session = self.client.session
+        session['trip_preview_id'] = trip.id
+        session.save()
+
+        response = self.client.post(reverse('confirm_trip'))
+        self.assertRedirects(response, reverse('user_profile'))
+        self.assertNotIn('trip_preview_id', self.client.session)
+
+    def test_cancel_trip_deletes_trip(self):
+        self.login()
+        trip = TripDetails.objects.create(
+            user=self.user_profile,
+            facility=self.facility,
+            start_date='2025-06-01',
+            end_date='2025-06-03',
+        )
+        session = self.client.session
+        session['trip_preview_id'] = trip.id
+        session.save()
+
+        response = self.client.post(reverse('cancel_trip'))
+        self.assertRedirects(response, reverse('user_profile'))
+        self.assertFalse(TripDetails.objects.filter(id=trip.id).exists())
+
+    def test_trip_detail_view(self):
+        self.login()
+        trip = TripDetails.objects.create(
+            user=self.user_profile,
+            facility=self.facility,
+            start_date='2025-06-10',
+            end_date='2025-06-12',
+        )
+        response = self.client.get(reverse('trip_detail', args=[trip.id]))
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, self.facility.name)

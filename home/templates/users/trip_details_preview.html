@@ -67,9 +67,13 @@
 <h3>Packing List</h3>
 <div class="inbox" id="packingListContainer"></div>
 
+<form method="post" action="{% url 'confirm_trip' %}">
+  {% csrf_token %}
+  <button type="submit" class="btn btn-primary">Save Trip</button>
+</form>
 <form method="post" action="{% url 'cancel_trip' %}">
   {% csrf_token %}
-  <button type="submit" class="btn btn-primary">Delete</button>
+  <button type="submit" class="btn btn-primary">Start Over</button>
 </form>
 
 <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
