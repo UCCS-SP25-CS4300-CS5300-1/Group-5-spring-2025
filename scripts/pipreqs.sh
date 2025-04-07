@@ -6,7 +6,7 @@ if [ -z "$1" ]; then
 fi
 while IFS='==' read -r pkg version; do
     ## Find packages in requirements
-    if grep -q "^${pkg}==" requirements.txt; then
+    if grep -qi "^${pkg}==" requirements.txt; then
         ## Update the given package number based on pipreqs.txt
         sed -i "s/^${pkg}==.*/${pkg}==${version}/" requirements.txt
     else
