@@ -81,11 +81,55 @@ def save_facility(request, facility_id):
     #Im getting the data from 
     user = CampUser.objects.get(username=request.user.username)
 
+
+    # make API call to get facility
+    testfacility = return_facility_detail(facility_id)
+    # get facility details from api
+    
+    name = testfacility["FacilityName"]
+    type = testfacility["FacilityTypeDescription"]
+    acessibility_txt = testfacility["FacilityAccessibilityText"]
+    ada = testfacility["FacilityAdaAccess"]
+    phone = testfacility["FacilityPhone"]
+    email = testfacility["FacilityEmail"]
+    desc = testfacility["FacilityDescription"]
+    reservable = testfacility["Reservable"]
+    # temp for now 
+    url = "thisisanurl"
+    location = "location"
+
+        # create the saved facility (or get it if it already exists in user profile)
+    facility, created = Facility.objects.get_or_create(
+        # the facility id is passed in, so thats why we use it directly
+        # all other attributes are passed in from the html template facility_detail.html
+        # thats why we use request.GET with the appropriate name 
+
+        f_id=facility_id,
+        defaults={
+            "name": name,
+            "location": location,
+            "type": type,
+            "accessibility_txt": acessibility_txt,
+            "ada_accessibility": ada,
+            "phone": phone,
+            "email": email,
+            "description": desc,
+            "reservable": reservable,
+            "url": url
+            
+        }
+        
+    )
+    
+
+
+    '''
     # create the saved facility (or get it if it already exists in user profile)
     facility, created = Facility.objects.get_or_create(
         # the facility id is passed in, so thats why we use it directly
         # all other attributes are passed in from the html template facility_detail.html
         # thats why we use request.GET with the appropriate name 
+
         f_id=facility_id,
         defaults={
             "name": request.GET.get("name"),
@@ -100,7 +144,10 @@ def save_facility(request, facility_id):
             "url": request.GET.get("url")
             
         }
-    )
+        
+    )'
+    '''
+    
 
     # add this facility to user's favorited_loc attribute
     # (but really this is an attribute of UserProfile which is an attribute of user... have 

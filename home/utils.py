@@ -142,6 +142,8 @@ def return_facility_url(facility_id):
 
     # this is based on API documentation -- a successful response code is 200
     # if response was successful, return the data
+    # url = response.json().get("RECDATA", [{}])[0].get("URL")
+
     if response.status_code == 200:
         return response.json().get("RECDATA", [])
     else:

@@ -130,11 +130,5 @@ class TestUtils(unittest.TestCase):
         self.assertEqual(filtered[1]["FacilityName"], "Mock Facility Three")
         self.assertTrue(filtered[1]["Reservable"] == True)
 
-
-
-
-
-
-
 if __name__ == '__main__':
     unittest.main()

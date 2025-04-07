@@ -33,8 +33,7 @@
          <!-- Facility Detail Card Buttons -->
         <div class="card-footer text-center">
             {% if user.is_authenticated %}
-                <a href="{% url 'save_facility' campsite.FacilityID %}?name={{ campsite.FacilityName }}&location={{ address }}, {{ city }}, {{ state }}&type={{ campsite.FacilityTypeDescription }}&a_txt={{ campsite.FacilityAcessibilityText }}&ada={{ campsite.FacilityAdaAccess }}&phone={{ campsite.FacilityPhone }}&email={{ campsite.FacilityEmail }}&description={{ campsite.FacilityDescription }}&reservable={{ campsite.Reservable|yesno:'true,false'}}&url={{ url }}" 
-                   class="btn btn-success me-2">
+                <a href="{% url 'save_facility' campsite.FacilityID %}" class="btn btn-success me-2">
                     <i class="fas fa-heart"></i> Save to Favorites
                 </a>
             {% endif %}
