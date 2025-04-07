@@ -65,11 +65,13 @@ def facility_detail(request, facility_id):
     # want to access the URL attribute, so thats why syntax url[0].get("URL") is done
     # we do this as an exception because the return_facility_url may return no data with 
     # a successful response code still, so theres not index to index to; hence IndexError
+
     try:
         url = return_facility_url(facility_id)
         url = url[0].get("URL")
     except IndexError:
         url = ""
+   
   
 
     return render(request, "facility_detail.html", {"campsite": campsite, "city": city, "state": state, "address": address, 'url': url})
@@ -93,7 +95,7 @@ def save_facility(request, facility_id):
     phone = testfacility["FacilityPhone"]
     email = testfacility["FacilityEmail"]
     desc = testfacility["FacilityDescription"]
-    reservable = testfacility["Reservable"]
+    reservable = True
     # temp for now 
     url = "thisisanurl"
     location = "location"

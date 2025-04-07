@@ -145,6 +145,7 @@ def return_facility_url(facility_id):
     # url = response.json().get("RECDATA", [{}])[0].get("URL")
 
     if response.status_code == 200:
+        print('got here')
         return response.json().get("RECDATA", [])
     else:
         return {}
