@@ -32,6 +32,10 @@ jobs:
         run: |
           pip install openai PyGithub
 
+      - name: Debug GitHub Context
+        run: echo "${{ toJson(github.event) }}"
+
+
       - name: Run Custom Code Review
         run: |
           python scripts/code_review.py
