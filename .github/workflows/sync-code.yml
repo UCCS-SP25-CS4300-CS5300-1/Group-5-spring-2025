@@ -1,0 +1,37 @@
+name: Deploy to Droplet via Code Sync
+
+on:
+  push:
+    branches:
+      - main    # or whichever branch you want to deploy from
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Deploy to Droplet via SSH
+        uses: appleboy/ssh-action@v0.1.8
+        with:
+          host: ${{ secrets.DROPLET_IP }}
+          username: ${{ secrets.DROPLET_USER }}
+          key: ${{ secrets.DROPLET_SSH_KEY }}
+          script: |
+            # Navigate to the clone of your repository on the droplet
+            cd /home/deploy/app || { echo "Repository directory not found"; exit 1; }
+            
+            # Update the repository to the latest commit on the main branch
+            git fetch origin
+            git reset --hard origin/main
+            
+            # Build the Docker image locally on the droplet
+            docker build -t campmate:latest .
+            
+            # Stop and remove any existing container instance (ignoring errors if not running)
+            docker stop campmate || true
+            docker rm campmate || true
+            
+            # Run the new container (adjust ports and options as needed)
+            docker run -d -p 80:8080 --restart=always --name campmate campmate:latest

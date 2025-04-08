@@ -48,4 +48,5 @@ jobs:
         with:
           name: code-review
           path: review.md  
-          if-no-files-found: error
+          if-no-files-found: ignore
+        
