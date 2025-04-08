@@ -13,7 +13,9 @@ https://docs.djangoproject.com/en/4.2/ref/settings/
 from pathlib import Path
 from decouple import config
 
-OPENAI_API_KEY = config('OPENAI_API_KEY', default='dummy-key')
+#I know this is bad. Need to get together with Robert to figure out how to store in production environment variablesgit 
+OPENAI_API_KEY="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"
+
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
