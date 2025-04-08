@@ -1,0 +1,16 @@
+name: campmate
+services:
+  - name: web
+    image: registry.digitalocean.com/${{ secrets.DO_REGISTRY_NAME }}/campmate:latest
+    run_command: gunicorn myproject.wsgi:application --bind 0.0.0.0:8080
+    envs:
+      - key: SECRET_KEY
+        value: ${{ secrets.DJANGO_SECRET_KEY }}
+      - key: DJANGO_SETTINGS_MODULE
+        value: "camp_mate.docker_settings"
+    volume_mounts:
+      - volume_name: appdata
+        mount_path: /app/data
+volumes:
+  - name: appdata
+    size: 5Gi
