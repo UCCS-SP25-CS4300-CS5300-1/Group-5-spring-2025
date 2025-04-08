@@ -5,6 +5,9 @@ permissions:
   pull-requests: write
 
 on:
+  push:  # Runs on every commit to any branch
+    branches:
+      - 'abi_dev'
   pull_request:
     types: [opened, reopened, synchronize]
 
@@ -29,6 +32,10 @@ jobs:
         run: |
           pip install openai PyGithub
 
+      - name: Debug GitHub Context
+        run: echo "${{ toJson(github.event) }}"
+
+
       - name: Run Custom Code Review
         run: |
           python scripts/code_review.py
@@ -37,3 +44,11 @@ jobs:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
           GITHUB_PR_ID: ${{ github.event.pull_request.number }}
           GITHUB_REPOSITORY: ${{ github.repository }}
+
+
+      - name: Upload Code Review Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: code-review
+          path: review.txt  
+          if-no-files-found: error

@@ -17,6 +17,15 @@ urlpatterns = [
     path('edit_preferences/', views.edit_preferences, name="edit_preferences"),
     path('delete_review/<str:facility_id>/', views.delete_facility, name="delete_facility"),
 
+    #FOR TRIP DETAILS
+    path('trip/preview/', views.trip_preview, name='trip_preview'),
+    path('trip/confirm/', views.confirm_trip, name='confirm_trip'),
+    path('trip/cancel/', views.cancel_trip, name='cancel_trip'),
+    path('trip/<int:trip_id>/', views.trip_detail, name='trip_detail'),
+    path('trip/create/<str:facility_id>/', views.create_trip_async, name='create_trip_async'),
+
+
+
     #FOR USER
     path('register/', views.register_view, name='register'),
     path('profile/', views.user_profile,name='user_profile'),

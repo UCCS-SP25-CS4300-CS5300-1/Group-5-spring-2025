@@ -26,6 +26,23 @@ class Facility(models.Model):
 
     def __str__(self):
         return self.name
+    
+
+
+class TripDetails(models.Model):
+    # this is the user that created the trip
+    user = models.ForeignKey('UserProfile', on_delete=models.CASCADE)
+    facility = models.ForeignKey('Facility', on_delete=models.SET_NULL, null=True, blank=True)
+
+    start_date = models.DateField()
+    end_date = models.DateField()
+
+    number_of_people = models.PositiveIntegerField(default=1)
+    packing_list = models.TextField(blank=True, help_text="Comma-separated packing list items generated via AI.")
+    
+
+    def __str__(self):
+        return f"{self.user.user.username}'s Trip to {self.facility.name} on {self.start_date}"
 
 
 # models has the CampUser class, Amenities class,
@@ -53,6 +70,8 @@ class CampUser(AbstractUser):
 class UserProfile(models.Model):
     user = models.OneToOneField(CampUser, on_delete=models.CASCADE)
     favorited_loc = models.ManyToManyField(Facility, blank=True)
+    
+
 
     def __str__(self):
           return f"{self.user.username}'s Profile"

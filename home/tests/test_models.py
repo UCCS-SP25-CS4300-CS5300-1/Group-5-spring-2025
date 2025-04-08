@@ -5,6 +5,10 @@ from django.urls import reverse
 from django.contrib.auth import get_user_model
 from home.models import *
 from home.forms import CampUserCreationForm
+from datetime import date
+
+
+
 
 class FacilityModelTest(TestCase):
     def setUp(self):
@@ -91,6 +95,7 @@ class RegisterTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, '<form')
 
+
 class UserPreferencesModelTest(TestCase):
     def setUp(self):
         # create user
@@ -117,3 +122,81 @@ class UserPreferencesModelTest(TestCase):
         self.assertFalse(self.preferences.hotel)
         self.assertTrue(self.preferences.trail)
         self.assertTrue(self.preferences.reservable)
+
+
+class TripDetailsModelTests(TestCase):
+    def setUp(self):
+        # Use custom user model
+        CampUser = get_user_model()
+        self.user = CampUser.objects.create_user(username='testuser', password='password')
+        self.profile = self.user.userprofile  # UserProfile is created automatically by signal  
+
+        # Create facility
+        self.facility = Facility.objects.create(
+            name='Test Campground',
+            location='Forest Hill',
+            f_id='TST001',
+            type='Campground',
+            accessibility_txt='Fully Accessible',
+            ada_accessibility='Y',
+            phone='1234567890',
+            email='camp@test.com',
+            description='A test campground for unit testing.'
+        )
+
+    def test_tripdetails_creation(self):
+        """Test basic creation of a TripDetails instance"""
+        trip = TripDetails.objects.create(
+            user=self.profile,
+            facility=self.facility,
+            start_date=date(2025, 6, 1),
+            end_date=date(2025, 6, 3),
+            number_of_people=2,
+            packing_list='Tent, Sleeping Bag, Flashlight'
+        )
+        self.assertEqual(trip.user, self.profile)
+        self.assertEqual(trip.facility, self.facility)
+        self.assertEqual(trip.number_of_people, 2)
+        self.assertEqual(trip.packing_list, 'Tent, Sleeping Bag, Flashlight')
+
+    def test_tripdetails_str(self):
+        """Test string representation of TripDetails"""
+        trip = TripDetails.objects.create(
+            user=self.profile,
+            facility=self.facility,
+            start_date=date(2025, 7, 1),
+            end_date=date(2025, 7, 2),
+        )
+        expected = f"{self.user.username}'s Trip to {self.facility.name} on {trip.start_date}"
+        self.assertEqual(str(trip), expected)
+
+    def test_default_number_of_people(self):
+        """Test that number_of_people defaults to 1"""
+        trip = TripDetails.objects.create(
+            user=self.profile,
+            facility=self.facility,
+            start_date=date(2025, 8, 1),
+            end_date=date(2025, 8, 3),
+        )
+        self.assertEqual(trip.number_of_people, 1)
+
+    def test_trip_with_null_facility(self):
+        """Test TripDetails can be created without a facility (nullable)"""
+        trip = TripDetails.objects.create(
+            user=self.profile,
+            facility=None,
+            start_date=date(2025, 9, 10),
+            end_date=date(2025, 9, 15),
+        )
+        self.assertIsNone(trip.facility)
+
+    def test_missing_required_fields(self):
+        """Test that required fields raise errors if missing"""
+        with self.assertRaises(Exception):
+            TripDetails.objects.create(
+                user=self.profile,
+                facility=self.facility,
+                start_date=None,  # Required field
+                end_date=date(2025, 10, 1),
+            )
+
