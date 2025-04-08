@@ -1,3 +1,4 @@
+
 name: CI/CD Pipeline
 
 on:
@@ -29,7 +30,11 @@ jobs:
         run: |
           coverage run --source=home manage.py test home.tests
           coverage report --fail-under=80 --omit="*/migrations/*,*/manage.py,*/wsgi.py"
-
+          coverage xml
+          
+          
+          env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
       ## NOTE: unsure where coverage report/artifact is stored currently
       - name: Upload Coverage Report as Artifact  
         uses: actions/upload-artifact@v4
@@ -126,3 +131,4 @@ jobs:
   #         doctl auth init -t $DO_TOKEN
   #         doctl apps update ${{ secrets.DO_APP_ID }} --spec app.yaml ## `app.yml` will be located/configured 
                                                                        ### in DO platform
+

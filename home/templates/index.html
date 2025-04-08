@@ -21,19 +21,14 @@
 <div class="d-flex justify-content-center">
     <div id="map"></div>
 </div>
+
 <div class="d-flex justify-content-center">
     <button onclick="locateUser()" class="btn btn-primary">Show My Location</button>
 </div>
 
-
-
-
-
 <script>
-
-    // Defining Custom Icon-Marker
+    // Defining Custom Icon-Marker (Currently no change to visuals)
     var gpsIcon = L.icon({
-        iconUrl: "{% static 'images/red-marker.png' %}",
         iconSize: [38, 40],
         iconAnchor: [22, 38],
         popupAnchor: [-3, -76],
@@ -47,25 +42,60 @@
         attribution: '&copy; OpenStreetMap contributors'
     }).addTo(map);
 
-    // Function to locate the user and add a marker
+    // Function to locate the user, fetch weather data, and add a marker with the weather info
     function locateUser() {
         if (navigator.geolocation) {
             navigator.geolocation.getCurrentPosition(
                 function(position) {
                     var lat = position.coords.latitude;
                     var lon = position.coords.longitude;
-                    var accuracy = position.coords.accuracy;
-
-                    // Add a marker at the user's location
-                    var userMarker = L.marker([lat, lon], {icon: gpsIcon}).addTo(map)
-                        .bindPopup("<b>Your Location</b><br>Latitude: " + lat.toFixed(2) + "<br>Longitude: " + lon.toFixed(2) + "<br>Accuracy: " + accuracy + " meters.")
-                        .openPopup();
-
-                    // Add a circle to represent the accuracy
-                    var accuracyCircle = L.circle([lat, lon], { radius: accuracy }).addTo(map);
+                    var radiusGPS = 40233;
 
                     // Center the map on the user's location
                     map.setView([lat, lon], 13);
+
+                    // Build the API URL for Open-Meteo
+                    var weatherUrl = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true&temperature_unit=fahrenheit`;
+
+
+                    // Fetch weather data using latitude and longitude
+                    fetch(weatherUrl)
+                        .then(response => response.json())
+                        .then(weatherData => {
+                            // Extract weather data
+                            var temperature = weatherData.current_weather.temperature;
+                            var weatherCode = weatherData.current_weather.weathercode;
+                            var weatherDescription = getWeatherDescription(weatherCode);
+
+                            // Create popup content with weather info
+                            var popupContent = `<b>Your Location</b><br>
+                                                Latitude: ${lat.toFixed(2)}<br>
+                                                Longitude: ${lon.toFixed(2)}<br>
+                                                Temperature: ${temperature} °F<br>
+                                                Weather: ${weatherDescription}<br>
+                                                Radius: 25 Mile.`;
+
+                            // Add a marker at the user's location with the updated popup (Get rid of comment when changing gpsIcon)
+                            var userMarker = L.marker([lat, lon] /*, { icon: gpsIcon } */).addTo(map)
+                                .bindPopup(popupContent)
+                                .openPopup();
+
+                            // Add a circle to represent the accuracy
+                            L.circle([lat, lon], { radius: radiusGPS }).addTo(map);
+                        })
+                        .catch(error => {
+                            console.error('Error fetching weather data:', error);
+                            // Fallback content if weather fetch fails
+                            var popupContent = `<b>Your Location</b><br>
+                                                Latitude: ${lat.toFixed(2)}<br>
+                                                Longitude: ${lon.toFixed(2)}<br>
+                                                Weather: Unable to fetch weather info<br>
+                                                Radius: 25 Mile.`;
+                            var userMarker = L.marker([lat, lon]).addTo(map)
+                                .bindPopup(popupContent)
+                                .openPopup();
+                            L.circle([lat, lon], { radius: radiusGPS }).addTo(map);
+                        });
                 },
                 function(error) {
                     alert("Error retrieving location: " + error.message);
@@ -74,6 +104,41 @@
         } else {
             alert("Geolocation is not supported by this browser.");
         }
+    }
+
+    // Function to map Open-Meteo weather codes to human-friendly descriptions
+    function getWeatherDescription(code) {
+        const weatherMap = {
+            0: 'Clear sky',
+            1: 'Mainly clear',
+            2: 'Partly cloudy',
+            3: 'Overcast',
+            45: 'Fog',
+            48: 'Depositing rime fog',
+            51: 'Light drizzle',
+            53: 'Moderate drizzle',
+            55: 'Dense drizzle',
+            56: 'Light freezing drizzle',
+            57: 'Dense freezing drizzle',
+            61: 'Slight rain',
+            63: 'Moderate rain',
+            65: 'Heavy rain',
+            66: 'Light freezing rain',
+            67: 'Heavy freezing rain',
+            71: 'Slight snowfall',
+            73: 'Moderate snowfall',
+            75: 'Heavy snowfall',
+            77: 'Snow grains',
+            80: 'Slight rain showers',
+            81: 'Moderate rain showers',
+            82: 'Violent rain showers',
+            85: 'Slight snow showers',
+            86: 'Heavy snow showers',
+            95: 'Thunderstorm',
+            96: 'Thunderstorm with slight hail',
+            99: 'Thunderstorm with heavy hail'
+        };
+        return weatherMap[code] || 'Unknown weather';
     }
 </script>
 

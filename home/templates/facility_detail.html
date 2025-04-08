@@ -14,7 +14,7 @@
                 
                 <div class="col-md-6">
                     <ul class="list-group list-group-flush">
-                        <li class="list-group-item"><i class="fas fa-map-marker-alt"></i> <strong>Location:</strong> {{ address }}, {{ city }}, {{ state }}</li>
+                        <li class="list-group-item"><i class="fas fa-map-marker-alt"></i> <strong>Location:</strong> {{ facility_address }}</li>
                         <li class="list-group-item"><i class="fas fa-campground"></i> <strong>Type:</strong> {{ campsite.FacilityTypeDescription }}</li>
                         <li class="list-group-item"><i class="fas fa-info-circle"></i> <strong>Description:</strong> {{ campsite.FacilityDescription|default:"N/A" }}</li>
                     </ul>
@@ -23,6 +23,8 @@
                     <ul class="list-group list-group-flush">
                         <li class="list-group-item"><i class="fas fa-phone"></i> <strong>Contact:</strong> {{ campsite.FacilityPhone|default:"No contact information available" }}</li>
                         <li class="list-group-item"><i class="fas fa-wheelchair"></i> <strong>ADA Accessible:</strong> {{ campsite.FacilityAdaAccess|default:"No information available" }}</li>
+                        <li class="list-group-item"><i class="fas fa-calendar"></i> <strong>Reservable:</strong> {{ campsite.Reservable|yesno:"Yes,No,No information available" }}</li>
+                        <li class="list-group-item"><i class="fas fa-arrow-right"></i> <strong>Website URL:</strong> <a href="{{ url|default:'#'}}">{{ url|default:'No information available' }}</a></li>
                     </ul>
                 </div>
             </div>
@@ -31,8 +33,7 @@
          <!-- Facility Detail Card Buttons -->
         <div class="card-footer text-center">
             {% if user.is_authenticated %}
-                <a href="{% url 'save_facility' campsite.FacilityID %}?name={{ campsite.FacilityName }}&location={{ address }}, {{ city }}, {{ state }}&type={{ campsite.FacilityTypeDescription }}&a_txt={{ campsite.FacilityAcessibilityText }}&ada={{ campsite.FacilityAdaAccess }}&phone={{ campsite.FacilityPhone }}&email={{ campsite.FacilityEmail }}&description={{ campsite.FacilityDescription }}" 
-                   class="btn btn-success me-2">
+                <a href="{% url 'save_facility' campsite.FacilityID %}" class="btn btn-success me-2">
                     <i class="fas fa-heart"></i> Save to Favorites
                 </a>
             {% endif %}

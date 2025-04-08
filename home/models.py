@@ -2,6 +2,7 @@ from django.db import models
 from django.contrib.auth.models import AbstractUser
 
 # Create your models here.
+# *** NEED TO ADD RESERVABLE & URL ATTRIBUTES... MAYBE ALSO INCORPORATE MEDIA TOO ***
 class Facility(models.Model):
     name = models.CharField(max_length=255)
     # for now, location will be character field.... address, city, state? from facility RIDB api schema
@@ -20,9 +21,28 @@ class Facility(models.Model):
     phone = models.CharField(max_length=15, blank=True, null=True)
     email = models.EmailField(max_length=255, blank=True, null=True)
     description = models.TextField()
+    reservable = models.BooleanField(default=False)
+    url =  models.CharField(max_length=255, blank=True, null=True)
 
     def __str__(self):
         return self.name
+    
+
+
+class TripDetails(models.Model):
+    # this is the user that created the trip
+    user = models.ForeignKey('UserProfile', on_delete=models.CASCADE)
+    facility = models.ForeignKey('Facility', on_delete=models.SET_NULL, null=True, blank=True)
+
+    start_date = models.DateField()
+    end_date = models.DateField()
+
+    number_of_people = models.PositiveIntegerField(default=1)
+    packing_list = models.TextField(blank=True, help_text="Comma-separated packing list items generated via AI.")
+    
+
+    def __str__(self):
+        return f"{self.user.user.username}'s Trip to {self.facility.name} on {self.start_date}"
 
 
 # models has the CampUser class, Amenities class,
@@ -43,21 +63,29 @@ class CampUser(AbstractUser):
         blank=True
     )
     
+    # this line of code is unneeded but removing it breaks a lot of tests, need to redesign tests when get the chance
     preference = models.CharField(max_length=20)
-
-# Amenities for a location
-class Amenity(models.Model):
-    name = models.CharField(max_length=50)
-
-    def __str__(self):
-        return self.name
 
 # A user profile that contains amenity preferences and favorite locations
 class UserProfile(models.Model):
     user = models.OneToOneField(CampUser, on_delete=models.CASCADE)
-    amenity_pref = models.ManyToManyField('Amenity', blank=True)
     favorited_loc = models.ManyToManyField(Facility, blank=True)
+    
+
 
     def __str__(self):
           return f"{self.user.username}'s Profile"
+    
+
+# User preferences 
+class UserPreferences(models.Model):
+    # the related_name param makes it so CampUser model can access user preferences 
+    user = models.OneToOneField(CampUser, on_delete=models.CASCADE, related_name="preferences")
+    campground = models.BooleanField(default=True)
+    rangerstation = models.BooleanField(default=True)
+    hotel = models.BooleanField(default=True)
+    trail = models.BooleanField(default=True)
+    facility = models.BooleanField(default=True)
+    reservable = models.BooleanField(default=True)
+
     
