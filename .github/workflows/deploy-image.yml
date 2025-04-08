@@ -13,14 +13,17 @@ jobs:
   build-push-deploy-image:
     runs-on: ubuntu-latest
     steps:
+
       - name: Checkout repository
         uses: actions/checkout@v4
+
       - name: Log in to the Container registry
         uses: docker/login-action@v3.3.0
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
+
       - name: Build and push Docker image
         id: push
         uses: docker/build-push-action@v6.5.0
@@ -29,16 +32,22 @@ jobs:
           push: true
           tags: ghcr.io/${{ secrets.LOWERCASE_GHCR_REPO }}:latest
       
-      - name: Prepare app spec dynamically
-        run: |
-          export GHCR_USERNAME=${{ secrets.GHCR_USERNAME }}
-          export GHCR_REPO=${{ secrets.GHCR_REPO }}
-          export DJANGO_SECRET_KEY=${{ secrets.DJANGO_SECRET_KEY }}
-          envsubst < .do/template.app.yaml > .do/app.yaml
-      
-      - name: Deploy the app
-        uses: digitalocean/app_action/deploy@v2
-        env:
-          SAMPLE_DIGEST: ${{ steps.push.outputs.digest }}
+      - name: Deploy to droplet system via ssh
+        uses: appleboy/ssh-action@v0.1.8
         with:
-          token: ${{ secrets.DO_API_TOPAZ }}
+          host: ${{ secrets.DROPLET_IP }}
+          username: ${{ secrets.DROPLET_USER }}
+          key: ${{ secrets.DROPLET_SSH_KEY }}
+          script: |
+            echo "Pulling the latest image..."
+            docker pull ghcr.io/${{ secrets.LOWERCASE_GHCR_REPO }}:latest
+            echo "Stopping and removing any existing container..."
+            docker stop campmate-cs4300 || true
+            docker rm campmate-cs4300 || true
+            echo "Starting a new container..."
+            # Customize the docker run command to match your app's requirements.
+            docker run -d \
+              --restart=always \
+              --name campmate-cs4300 \
+              -p 80:8080 \
+              ghcr.io/${{ secrets.LOWERCASE_GHCR_REPO }}:latest
