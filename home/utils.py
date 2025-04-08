@@ -104,8 +104,8 @@ def return_facility_detail(facility_id):
     else:
         return {}
     
-# returns facility address based on facility id
-# this if for the facility detail page
+# returns facility address based on facility id as a string
+# this is for the facility detail page
 def return_facility_address(facility_id):
 
     # get base url based on what we want from api: in this case, /facilities/{facilityId}/facilityaddresses
@@ -122,11 +122,24 @@ def return_facility_address(facility_id):
     # this is based on API documentation -- a successful response code is 200
     # if response was successful, return the data
     if response.status_code == 200:
-        return response.json().get("RECDATA", [])
+        try:
+            # JSON data in the form City:... AddressStateCode:...
+            # want to access the URL attribute, so thats why syntax response.json().get("RECDATA", [{}])[0].get("City") is done
+            # we do this as an exception because the data may return no data with 
+            # a successful response code still, so theres no index to index to; hence IndexError
+            city = response.json().get("RECDATA", [{}])[0].get("City")
+            state = response.json().get("RECDATA", [{}])[0].get("AddressStateCode")
+            address = response.json().get("RECDATA", [{}])[0].get("FacilityStreetAddress1")
+            facility_address = address + ', ' + city + ', ' + state
+            return facility_address
+        
+        except IndexError:
+            return ""
     else:
         return {}
     
-# returns facility website url
+# returns facility website url as a string
+# if no url, returns empty string 
 # needs own def since grabbing the url consists of diff request url
 def return_facility_url(facility_id):
 
@@ -143,7 +156,19 @@ def return_facility_url(facility_id):
     # this is based on API documentation -- a successful response code is 200
     # if response was successful, return the data
     if response.status_code == 200:
-        return response.json().get("RECDATA", [])
+        # get facility url
+        # JSON data in the form EntityLinkID:... LinkType:... ... URL:
+        # want to access the URL attribute, so thats why syntax url[0].get("URL") is done
+        # we do this as an exception because the return_facility_url may return no data with 
+        # a successful response code still, so theres no index to index to; hence IndexError
+        url = response.json().get("RECDATA", [])
+        try:
+            url = url[0].get("URL")
+        except IndexError:
+            url = ""
+        
+        return url
+        
     else:
         return {}
 

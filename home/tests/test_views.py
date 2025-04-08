@@ -37,19 +37,13 @@ class ViewTests(TestCase):
         facility_id = "123"
         # Simulate valid responses from the external functions.
         mock_return_facility_detail.return_value = {'f_id': facility_id, 'name': 'Camp A'}
-        mock_return_facility_address.return_value = [{
-            "City": "Denver",
-            "AddressStateCode": "CO",
-            "FacilityStreetAddress1": "123 Main St"
-        }]
+        mock_return_facility_address.return_value = "123 test, Denver, Colorado"
         url = reverse('facility_detail', kwargs={'facility_id': facility_id})
         response = self.client.get(url)
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, 'facility_detail.html')
         self.assertEqual(response.context.get('campsite'), {'f_id': facility_id, 'name': 'Camp A'})
-        self.assertEqual(response.context.get('city'), "Denver")
-        self.assertEqual(response.context.get('state'), "CO")
-        self.assertEqual(response.context.get('address'), "123 Main St")
+        self.assertEqual(response.context.get('facility_address'), "123 test, Denver, Colorado")
         mock_return_facility_detail.assert_called_once_with(facility_id)
         mock_return_facility_address.assert_called_once_with(facility_id)
 
@@ -58,35 +52,40 @@ class ViewTests(TestCase):
     def test_facility_detail_view_without_addresses(self, mock_return_facility_address, mock_return_facility_detail):
         facility_id = "456"
         mock_return_facility_detail.return_value = {'f_id': facility_id, 'name': 'Camp B'}
-        mock_return_facility_address.return_value = []
+        mock_return_facility_address.return_value = ""
         url = reverse('facility_detail', kwargs={'facility_id': facility_id})
         response = self.client.get(url)
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, 'facility_detail.html')
         self.assertEqual(response.context.get('campsite'), {'f_id': facility_id, 'name': 'Camp B'})
-        self.assertEqual(response.context.get('city'), "N/A")
-        self.assertEqual(response.context.get('state'), "N/A")
-        self.assertEqual(response.context.get('address'), "N/A")
+        self.assertEqual(response.context.get('facility_address'), "")
 
-    def test_save_facility_view(self):
+    @patch('home.views.return_facility_detail')
+    @patch('home.views.return_facility_address')
+    @patch('home.views.return_facility_url')
+    def test_save_facility_view(self, mock_return_facility_address, mock_return_facility_url, mock_return_facility_detail):
         # Log in the test user.
         self.client.login(username=self.test_username, password=self.test_password)
-        facility_id = "789"
-        # Simulate GET parameters from the facility_detail template.
-        get_params = {
-            "name": "Camp Save",
-            "location": "Denver",
-            "type": "Campground",
-            "a_txt": "Accessible",
-            "ada": "Yes",
-            "phone": "1234567890",
-            "email": "camp@example.com",
-            "description": "A nice camp.",
-            "reservable": True,
-            "url": "www.url.com",
+        # Simulate mock API call
+        facility_id = "123"
+
+        # Mock the return_facility_detail response to match what the view expects
+        mock_return_facility_detail.return_value = {
+            "FacilityName": "Camp Save",
+            "FacilityTypeDescription": "Campground",
+            "FacilityAccessibilityText": "Accessible",
+            "FacilityAdaAccess": "Y",
+            "FacilityPhone": "123 456-78910",
+            "FacilityEmail": "email@test.com",
+            "FacilityDescription": "Description here",
+            "Reservable": True
         }
+        mock_return_facility_address.return_value = "123 test, Denver, CO"
+        mock_return_facility_url.return_value = "www.url.com"
+
+
         url = reverse('save_facility', kwargs={'facility_id': facility_id})
-        response = self.client.get(url, data=get_params)
+        response = self.client.get(url)
         self.assertEqual(response.status_code, 302)
         self.assertRedirects(response, reverse('user_profile'))
         # Verify that the facility was created and added to the user's profile.

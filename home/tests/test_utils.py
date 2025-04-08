@@ -45,12 +45,23 @@ class TestUtils(unittest.TestCase):
     @patch('home.utils.requests.get')
     def test_return_facility_address_success(self, mock_get):
         # Simulate a successful address fetch.
-        mock_response = MagicMock(status_code=200)
-        mock_response.json.return_value = {"RECDATA": [{"City": "Denver"}]}
-        mock_get.return_value = mock_response
+        mock_response = {
+            "RECDATA": [
+                {
+                    "FacilityID": "123",
+                    "City": "Denver",
+                    "AddressStateCode": "CO",
+                    "FacilityStreetAddress1": "123 test test"
+
+                }
+            ]
+            
+        }
+        mock_get.return_value.status_code = 200
+        mock_get.return_value.json.return_value = mock_response
 
         result = return_facility_address("123")
-        self.assertEqual(result, [{"City": "Denver"}])
+        self.assertEqual(result, "123 test test, Denver, CO")
 
     @patch('home.utils.requests.get')
     def test_return_facility_address_failure(self, mock_get):
@@ -129,12 +140,6 @@ class TestUtils(unittest.TestCase):
         self.assertEqual(filtered[1]["FacilityID"], "789")
         self.assertEqual(filtered[1]["FacilityName"], "Mock Facility Three")
         self.assertTrue(filtered[1]["Reservable"] == True)
-
-
-
-
-
-
 
 if __name__ == '__main__':
     unittest.main()

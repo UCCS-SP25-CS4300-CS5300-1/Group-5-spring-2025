@@ -43,6 +43,12 @@
                                 <a href="" class="btn btn-success">
                                     <i class="fas fa-suitcase"></i> Let's Pack!
                                 </a>
+                                <form action="{% url 'delete_facility' campsite.f_id %}" method="POST" style="display: inline;">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn btn-info">
+                                        <i class="fas fa-trash-alt"></i> Delete 
+                                    </button>
+                                </form>
                             </div>
                         </div>
                     </div>
