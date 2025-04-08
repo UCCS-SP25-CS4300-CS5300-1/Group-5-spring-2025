@@ -5,9 +5,6 @@ permissions:
   pull-requests: write
 
 on:
-  push:  # Runs on every commit to any branch
-    branches:
-      - 'abi_dev'
   pull_request:
     types: [opened, reopened, synchronize]
 
@@ -50,5 +47,5 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: code-review
-          path: review.txt  
+          path: review.md  
           if-no-files-found: error

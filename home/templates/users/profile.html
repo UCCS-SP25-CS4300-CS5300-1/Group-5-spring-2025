@@ -80,6 +80,13 @@
                     <strong>People:</strong> {{ trip.number_of_people }}
                   </p>
                   <a href="{% url 'trip_detail' trip.id %}" class="btn btn-primary">View Trip</a>
+                  <form method="post" action="{% url 'cancel_trip' %}?trip_id={{ trip.id }}" style="display: inline;">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-info">
+                        <i class="fas fa-trash-alt"></i> Delete 
+                    </button>
+                  </form>
+                
                 </div>
               </div>
             </div>

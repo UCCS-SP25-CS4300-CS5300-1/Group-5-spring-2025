@@ -72,7 +72,7 @@ def post_review_comments(pr, review_comments):
     except Exception as e:
         raise ValueError(f"Failed to post review comments: {e}")
 
-def save_review_to_file(review_comments, filename="review.txt"):
+def save_review_to_file(review_comments, filename="review.md"):
     try:
         with open(filename, "w") as f:
             f.write(review_comments)
@@ -97,6 +97,9 @@ def main():
 
         # Post the review comments as a GitHub PR comment
         post_review_comments(pr, review_comments)
+
+        #Save as github artifact
+        save_review_to_file(review_comments)
 
         print("Code review posted successfully.")
 
