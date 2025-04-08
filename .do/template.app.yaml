@@ -2,7 +2,7 @@ name: campmate-cs4300
 services:
   - name: web
     image:
-      registry_type: DOCKER_HUB
+      registry_type: GHCR
       repository: ghcr.io/${GHCR_USERNAME}/${GHCR_REPO}
       tag: latest
     run_command: gunicorn myproject.wsgi:application --bind 0.0.0.0:8080
