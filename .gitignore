@@ -1,3 +1,10 @@
+## Local dev ignores
+local/
+
+## Odd new `cache` ignore?
+
+*cache*
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]

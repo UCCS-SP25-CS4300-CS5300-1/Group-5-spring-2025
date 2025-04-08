@@ -18,6 +18,9 @@ OPENAI_API_KEY = config('OPENAI_API_KEY', default='dummy-key')
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+STATIC_ROOT = BASE_DIR / 'home/static' ## not sure if correct.. 
+                                       ### fix for issues in collect static
+
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/4.2/howto/deployment/checklist/
@@ -34,11 +37,13 @@ ALLOWED_HOSTS = [
       'app-advsedjango-5.devedu.io',
       'campmate-cs4300-ey35p.ondigitalocean.app',
       'campmate.ddns.net',
+      '146.190.139.92',
 ]
 
 CSRF_TRUSTED_ORIGINS = [
     'https://campmate-cs4300-ey35p.ondigitalocean.app/',
     'https://campmate.ddns.net',
+    'http://146.190.139.92/'
 ]
 
 
