@@ -1,4 +1,4 @@
-name: campmate
+name: campmate-cs4300-ey35p
 services:
   - name: web
     image:
