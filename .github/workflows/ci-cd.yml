@@ -2,9 +2,9 @@ name: CI/CD Pipeline
 
 on:
   push:
-    branches: [ cd_pipeline ] ## will change to main once confirmed functional
+    branches: [ main ] ## will change to main once confirmed functional
   pull_request:
-    branches: [ cd_pipeline ]
+    branches: [ main ]
 
 jobs:
   test-coverage:

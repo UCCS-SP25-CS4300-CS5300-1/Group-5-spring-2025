@@ -3,7 +3,7 @@ name: Deploy to Droplet via Code Sync
 on:
   push:
     branches:
-      - cd_pipeline    # or whichever branch you want to deploy from
+      - main    # or whichever branch you want to deploy from
 
 jobs:
   deploy:
@@ -24,7 +24,7 @@ jobs:
             
             # Update the repository to the latest commit on the main branch
             git fetch origin
-            git reset --hard origin/cd_pipeline
+            git reset --hard origin/main
             
             # Build the Docker image locally on the droplet
             docker build -t campmate:latest .
