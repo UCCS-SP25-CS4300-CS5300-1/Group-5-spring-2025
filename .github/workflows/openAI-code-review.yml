@@ -5,9 +5,6 @@ permissions:
   pull-requests: write
 
 on:
-  push:  # Runs on every commit to any branch
-    branches:
-      - 'abi_dev'
   pull_request:
     types: [opened, reopened, synchronize]
 
