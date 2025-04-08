@@ -26,7 +26,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-^xd9yybzt^p4y0h%6vz-q5)ijhuj94pq92$(e9_a+ug!=5qq#0'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
 ALLOWED_HOSTS = [
       'editor-advsedjango-5.devedu.io',
