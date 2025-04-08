@@ -35,11 +35,13 @@ ALLOWED_HOSTS = [
       'app-advsedjango-5.devedu.io',
       'campmate-cs4300-ey35p.ondigitalocean.app',
       'campmate.ddns.net',
+      '146.190.139.92',
 ]
 
 CSRF_TRUSTED_ORIGINS = [
     'https://campmate-cs4300-ey35p.ondigitalocean.app/',
     'https://campmate.ddns.net',
+    'http://146.190.139.92/'
 ]
 
 
