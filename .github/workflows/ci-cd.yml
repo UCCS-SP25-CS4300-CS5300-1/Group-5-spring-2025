@@ -31,7 +31,7 @@ jobs:       # The steps to run
       - name: Run Tests with Coverage
         run: |
           coverage run --source=home manage.py test home.tests
-          coverage report   #(--fail-under=80 --omit="*/migrations/*,*/manage.py,*/wsgi.py")
+          coverage report --fail-under=80 --omit="*/migrations/*,*/manage.py,*/wsgi.py"
           coverage xml
         env:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
