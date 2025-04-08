@@ -28,9 +28,17 @@ jobs:
           context: .
           push: true
           tags: ghcr.io/${{ secrets.LOWERCASE_GHCR_REPO }}:latest
+      
+      - name: Prepare app spec dynamically
+        run: |
+          export GHCR_USERNAME=${{ secrets.GHCR_USERNAME }}
+          export GHCR_REPO=${{ secrets.GHCR_REPO }}
+          export DJANGO_SECRET_KEY=${{ secrets.DJANGO_SECRET_KEY }}
+          envsubst < .do/template.app.yaml > .do/app.yaml
+      
       - name: Deploy the app
         uses: digitalocean/app_action/deploy@v2
         env:
           SAMPLE_DIGEST: ${{ steps.push.outputs.digest }}
         with:
-          token: ${{ secrets.DO_API_TOPAZ }} 
+          token: ${{ secrets.DO_API_TOPAZ }}
