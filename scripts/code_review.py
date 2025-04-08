@@ -98,6 +98,9 @@ def main():
         # Post the review comments as a GitHub PR comment
         post_review_comments(pr, review_comments)
 
+        #Save as github artifact
+        save_review_to_file(review_comments)
+
         print("Code review posted successfully.")
 
     except Exception as e:
