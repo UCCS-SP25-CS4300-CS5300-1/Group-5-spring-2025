@@ -31,9 +31,7 @@ jobs:
           coverage run --source=home manage.py test home.tests
           coverage report --fail-under=80 --omit="*/migrations/*,*/manage.py,*/wsgi.py"
           coverage xml
-          
-          
-          env:
+        env:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
       ## NOTE: unsure where coverage report/artifact is stored currently
       - name: Upload Coverage Report as Artifact  
