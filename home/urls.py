@@ -14,6 +14,8 @@ urlpatterns = [
     path('search/', views.search_view, name='search'),
     path("facility/<str:facility_id>/", views.facility_detail, name="facility_detail"),
     path("save/<str:facility_id>/", views.save_facility, name="save_facility"),
+    path('edit_preferences/', views.edit_preferences, name="edit_preferences"),
+    path('delete_review/<str:facility_id>/', views.delete_facility, name="delete_facility"),
 
     #FOR TRIP DETAILS
     path('trip/preview/', views.trip_preview, name='trip_preview'),
@@ -28,7 +30,7 @@ urlpatterns = [
     path('register/', views.register_view, name='register'),
     path('profile/', views.user_profile,name='user_profile'),
     path('login/', auth_views.LoginView.as_view(), name='login'),
-    #path('logout/', auth_views.LogoutView.as_view(), name='logout'),
     path('logout/', views.logoutUser, name='logout'),
+
 
 ]

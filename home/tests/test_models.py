@@ -3,7 +3,7 @@ from django.core.exceptions import ValidationError
 from django.db import IntegrityError
 from django.urls import reverse
 from django.contrib.auth import get_user_model
-from home.models import Facility, TripDetails, UserProfile
+from home.models import *
 from home.forms import CampUserCreationForm
 from datetime import date
 
@@ -96,6 +96,34 @@ class RegisterTests(TestCase):
         self.assertContains(response, '<form')
 
 
+class UserPreferencesModelTest(TestCase):
+    def setUp(self):
+        # create user
+        self.user = CampUser.objects.create_user(username='testuser', password="testpassword")
+        # create preferences (default is all True for pref attr)
+        self.preferences = UserPreferences.objects.create(user=self.user)
+
+    def test_preferences_defaults(self):
+        # test to make sure preferences are as expected when first setting up (default = all true)
+        self.assertTrue(self.preferences.campground)
+        self.assertTrue(self.preferences.rangerstation)
+        self.assertTrue(self.preferences.hotel)
+        self.assertTrue(self.preferences.trail)
+        self.assertTrue(self.preferences.reservable)
+
+    def test_update_preferences(self):
+        # test to make sure update works
+        self.preferences.hotel = False
+        self.preferences.rangerstation = False
+        self.preferences.save()
+        
+        self.assertTrue(self.preferences.campground)
+        self.assertFalse(self.preferences.rangerstation)
+        self.assertFalse(self.preferences.hotel)
+        self.assertTrue(self.preferences.trail)
+        self.assertTrue(self.preferences.reservable)
+
+
 class TripDetailsModelTests(TestCase):
     def setUp(self):
         # Use custom user model
@@ -171,3 +199,4 @@ class TripDetailsModelTests(TestCase):
                 start_date=None,  # Required field
                 end_date=date(2025, 10, 1),
             )
+

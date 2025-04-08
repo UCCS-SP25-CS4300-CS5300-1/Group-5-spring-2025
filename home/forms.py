@@ -3,6 +3,9 @@
 from django import forms
 from django.contrib.auth import get_user_model
 from django.contrib.auth.forms import UserCreationForm
+
+from .models import *
+from django.forms import ModelForm
 from .models import TripDetails
 
 
@@ -13,7 +16,10 @@ class CampUserCreationForm(UserCreationForm):
         fields = ['username','password1','password2']
 
 
-
+class UserPreferenceForm(ModelForm):
+    class Meta:
+        model = UserPreferences
+        fields = ['campground', 'rangerstation', 'hotel', 'trail', 'facility', 'reservable' ]
 
 
 
@@ -31,3 +37,4 @@ class TripDetailsForm(forms.ModelForm):
             'start_date': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
             'end_date': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
         }
+
