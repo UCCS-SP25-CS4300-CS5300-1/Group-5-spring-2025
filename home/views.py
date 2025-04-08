@@ -1,6 +1,7 @@
 from django.shortcuts import render, redirect
 from .utils import *
 from .models import *
+from django.conf import settings
 
 
 #FOR USER STUFF
