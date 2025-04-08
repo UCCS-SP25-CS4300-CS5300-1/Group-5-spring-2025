@@ -165,5 +165,11 @@ def edit_preferences(request):
     return render(request, "users/edit_preferences.html", {"form": form})
 
     
+# this allows users to delete a saved facility from their profile
+@login_required
+def delete_facility(request, facility_id):
+    facility = Facility.objects.get(f_id = facility_id)
 
-
+    if request.method == "POST":
+        facility.delete()
+        return redirect("user_profile")
