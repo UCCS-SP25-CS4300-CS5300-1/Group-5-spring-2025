@@ -11,6 +11,18 @@ from .forms import CampUserCreationForm
 from home.models import Facility
 from home.utils import return_facility_detail, search_facilities
 from django.contrib.auth import logout
+from .forms import *
+
+
+#FOR AI STUFF
+import openai
+from django.http import JsonResponse
+from django.utils.decorators import method_decorator
+from .models import TripDetails
+from datetime import datetime
+from .forms import TripDetailsForm
+from django.shortcuts import render, get_object_or_404
+
 
 
 
@@ -22,38 +34,35 @@ def index(request):
 def search_view(request):
     # Get location from search bar
     query = request.GET.get("q")  
+
+    # get user preferences
+    # this is done by accessing the applyFilters id of the switch on the html page, 
+    # getting its value, and testing if its equal to "on"; false means no, true means yes
+    apply_filters = request.GET.get("applyFilters") == "on"
+    
     campsites = []
 
     # if user input ok, search facilities based on query
     # this calls search_facilities function in utils.py, which makes the API request. 
     if query:
-        campsites = search_facilities(query)
+        campsites = search_facilities(query, user=request.user if apply_filters else None)
 
-    return render(request, "search_results.html", {"campsites": campsites, "query": query})
+    return render(request, "search_results.html", {"campsites": campsites, "query": query, "apply_filters": apply_filters})
 
 # view for facility detail 
+# returns a facility (called campsite) data type which attributes can be accessed by the dot operator
+# attributes can be found in RIDB API Facility schema
+# exp: get facility name: campsite.FacilityName
+# also returns facility address and url 
 def facility_detail(request, facility_id):
     campsite = return_facility_detail(facility_id)
 
-    # return_facility_address actually returns a dicitonary inside a list
-    # exp: [{'AddressCountryCode': 'USA', 'AddressStateCode': 'CO', 'City': 'Hotchkiss', ....}]
-    # to get the data I want, have to parse it through [0]['attribute_name']
-    # so, first get the list
-    facility_addresses = return_facility_address(facility_id)
-    # then fill out data if it actually returns something 
-    # though this doesnt guarantee all attributes are filled out. exp, some results have no street address.
-    # have to add in checks for this, do it later. 
-    if facility_addresses:
-        city = facility_addresses[0].get("City") 
-        state = facility_addresses[0].get("AddressStateCode")
-        address = facility_addresses[0].get("FacilityStreetAddress1")
-    else:
-        city = "N/A"
-        state = "N/A"
-        address = 'N/A'
-  
+    facility_address = return_facility_address(facility_id)
 
-    return render(request, "facility_detail.html", {"campsite": campsite, "city": city, "state": state, "address": address})
+    url = return_facility_url(facility_id)
+   
+
+    return render(request, "facility_detail.html", {"campsite": campsite, "facility_address": facility_address,  'url': url})
 
 # function for saving a facility to a users profile
 def save_facility(request, facility_id):
@@ -62,25 +71,39 @@ def save_facility(request, facility_id):
     #Im getting the data from 
     user = CampUser.objects.get(username=request.user.username)
 
+    # make API call to get facility: this returns a facility data type that we can extract attribute info from by getting value from key
+    testfacility = return_facility_detail(facility_id)
+    # get facility details from facility data type 
+    name = testfacility["FacilityName"]
+    type = testfacility["FacilityTypeDescription"]
+    acessibility_txt = testfacility["FacilityAccessibilityText"]
+    ada = testfacility["FacilityAdaAccess"]
+    phone = testfacility["FacilityPhone"]
+    email = testfacility["FacilityEmail"]
+    desc = testfacility["FacilityDescription"]
+    reservable = testfacility["Reservable"]
+    url = return_facility_url(facility_id)
+    location = return_facility_address(facility_id)
+
     # create the saved facility (or get it if it already exists in user profile)
     facility, created = Facility.objects.get_or_create(
-        # the facility id is passed in, so thats why we use it directly
-        # all other attributes are passed in from the html template facility_detail.html
-        # thats why we use request.GET with the appropriate name 
+
         f_id=facility_id,
         defaults={
-            "name": request.GET.get("name"),
-            "location": request.GET.get("location"),
-            "type": request.GET.get("type"),
-            "accessibility_txt": request.GET.get("a_txt"),
-            "ada_accessibility": request.GET.get("ada"),
-            "phone": request.GET.get("phone"),
-            "email": request.GET.get("email"),
-            "description": request.GET.get("description")
+            "name": name,
+            "location": location,
+            "type": type,
+            "accessibility_txt": acessibility_txt,
+            "ada_accessibility": ada,
+            "phone": phone,
+            "email": email,
+            "description": desc,
+            "reservable": reservable,
+            "url": url
             
         }
     )
-
+    
     # add this facility to user's favorited_loc attribute
     # (but really this is an attribute of UserProfile which is an attribute of user... have 
     # to ask Zach more about this... )
@@ -112,37 +135,24 @@ def user_profile(request):
     # retrieve favorited location IDs
     favorite_loc = prof.favorited_loc.all()
 
-    # getting previously favorited locations
-    # Piper editing: dont need to loop through favorite_loc; favorite_loc holds all facility instances
-    '''
-    favorite_loc = []
-    for loc in favorited_loc_id:
-        loc_details = return_facility_detail(loc.f_id)
-        if loc_details:
-            favorite_loc.append(loc_details)'
-    '''
 
-    # getting available locations to prepare to add new favorites
-    location = 'denver'
-    available_loc = search_facilities(location)
+    # retrieve user preferences, or create them if they don't exist yet
+    preferences, created = UserPreferences.objects.get_or_create(user=request.user)
 
-    # adding new favorite campsites
-    if request.method == 'POST':
-        favorite_ids = request.POST.getlist('favorite_loc')
-        for new_loc_id in favorite_ids:
-            try:
-                loc = Facility.objects.get(f_id=new_loc_id)
-                prof.favorited_loc.add(loc)
-            except Facility.DoesNotExist:
-                print(f"Facility with f_id {new_loc_id} does not exist.")
-        return redirect('user_profile')    
+    #associate trip details with the user
+    trips = TripDetails.objects.filter(user=prof)
+
+ 
+
 
     # context will be sent to the return request with the users profile and favorite locations
     # available locations are currently being set as a way to test adding favorite locations
     context = {
         'user_profile': prof,
         'favorite_loc': favorite_loc,
-        'available_loc': available_loc, 
+        'preferences': preferences,
+        'trips': trips,
+
     }
 
     return render(request, 'users/profile.html', context)
@@ -155,3 +165,123 @@ def logoutUser(request):
     # after logging out returns user to landing page 
     return redirect('index')
  
+
+# this allows users to edit their user preferences
+@login_required
+def edit_preferences(request):
+    # get user
+    user = request.user
+
+    # get users preferences if they exist; if they dont, create them
+    preferences, created = UserPreferences.objects.get_or_create(user=user)
+
+    if request.method == "POST":
+        form = UserPreferenceForm(request.POST, instance=preferences)
+        if form.is_valid():
+            form.save()
+            return redirect("user_profile")
+    else:
+        form = UserPreferenceForm(instance=preferences)
+
+    return render(request, "users/edit_preferences.html", {"form": form})
+
+    
+# this allows users to delete a saved facility from their profile
+@login_required
+def delete_facility(request, facility_id):
+    facility = Facility.objects.get(f_id = facility_id)
+
+    if request.method == "POST":
+        facility.delete()
+        return redirect("user_profile")
+
+
+
+@login_required
+def create_trip_async(request, facility_id):
+    if request.method == 'POST':
+        facility = get_object_or_404(Facility, id=facility_id)
+        form = TripDetailsForm(request.POST)
+        if form.is_valid():
+            trip_data = form.cleaned_data
+            start_date = trip_data['start_date']
+            end_date = trip_data['end_date']
+            number_of_people = trip_data['number_of_people']
+            
+            # Generate packing list using OpenAI
+            prompt = (
+                f"Generate a packing list for {number_of_people} people camping at {facility.name} "
+                f"from {start_date} to {end_date}. Focus on essentials. Consider the weather at this time and location. Give response in a comma separated list"
+            )
+            try:
+                openai.api_key = settings.OPENAI_API_KEY
+                ai_response = openai.ChatCompletion.create(
+                    model="gpt-3.5-turbo",
+                    messages=[{"role": "user", "content": prompt}],
+                    temperature=0.5
+                )
+                packing_list = ai_response.choices[0].message.content.strip()
+            except Exception as e:
+                print("OpenAI API error:", e)  # Log the error for debugging
+                packing_list = "Tent, sleeping bag, food, water, flashlight"  # fallback
+            
+            # Create a temporary TripDetails instance
+            trip = TripDetails.objects.create(
+                user=request.user.userprofile,
+                facility=facility,
+                start_date=start_date,
+                end_date=end_date,
+                number_of_people=number_of_people,
+                packing_list=packing_list,
+            )
+            
+            # Store the trip id in session for preview
+            request.session['trip_preview_id'] = trip.id
+
+            # Return the URL for the trip preview page
+            return redirect('trip_preview')
+        else:
+            return JsonResponse({'success': False, 'error': form.errors.as_json()})
+    return JsonResponse({'success': False, 'error': 'Invalid request'})
+
+
+
+
+@login_required
+def trip_preview(request):
+    # Retrieve the trip preview id from session
+    trip_id = request.session.get('trip_preview_id')
+    if not trip_id:
+        return redirect('index')  # or display an appropriate error message
+    trip = get_object_or_404(TripDetails, id=trip_id)
+    return render(request, 'users/trip_details_preview.html', {'trip': trip})
+
+@login_required
+def confirm_trip(request):
+    # When the user clicks the "Save Trip" button, confirm the trip.
+    # You could perform additional processing here if needed.
+    if 'trip_preview_id' in request.session:
+        del request.session['trip_preview_id']
+    # Redirect to the user profile or trips list page after saving
+    return redirect('user_profile')
+
+@login_required
+def cancel_trip(request):
+    # When the user clicks "Start Over", delete the temporary trip and clear the session data.
+    trip_id = request.session.get('trip_preview_id') or request.GET.get('trip_id')
+    if trip_id:
+        try:
+            trip = TripDetails.objects.get(id=trip_id, user=request.user.userprofile)
+            trip.delete()
+        except TripDetails.DoesNotExist:
+            pass
+        # Safely delete the session key if it exists and matches
+        if request.session.get('trip_preview_id') == int(trip_id):
+            del request.session['trip_preview_id']
+    return redirect('user_profile')  
+
+@login_required
+def trip_detail(request, trip_id):
+    trip = get_object_or_404(TripDetails, id=trip_id)
+    return render(request, 'users/trip_details.html', {'trip': trip})
+

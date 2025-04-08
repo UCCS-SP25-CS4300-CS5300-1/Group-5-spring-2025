@@ -45,22 +45,16 @@
     }
 </style>
 
-<div class="d-flex justify-content-center">
-    <button onclick="locateUser()" class="btn btn-primary">Show My Location</button>
-</div>
-
-
 <script>
     document.addEventListener("DOMContentLoaded", function () {
-        var map = L.map('map').setView([39.5, -98.35], 5); // Default center (USA)
+        const map = L.map('map').setView([39.5, -98.35], 5); // Centered on USA
 
-        // Add tile layer (OpenStreetMap)
+        // Add OpenStreetMap tiles
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
             attribution: '&copy; OpenStreetMap contributors'
         }).addTo(map);
 
-        // Dynamically insert markers based on Django context
-        var campsites = [
+        const campsites = [
             {% for site in campsites %}
                 {
                     name: "{{ site.FacilityName|escapejs }}",
@@ -72,44 +66,145 @@
             {% endfor %}
         ];
 
-        // Function to locate the user and add a marker
-    function locateUser() {
+        // Add weather data for each campsite
+        campsites.forEach(site => {
+            if (site.lat && site.lon) {
+                const weatherUrl = `https://api.open-meteo.com/v1/forecast?latitude=${site.lat}&longitude=${site.lon}&current_weather=true&temperature_unit=fahrenheit`;
+
+                fetch(weatherUrl)
+                    .then(response => response.json())
+                    .then(weatherData => {
+                        const temp = weatherData.current_weather.temperature;
+                        const code = weatherData.current_weather.weathercode;
+                        const weatherDesc = getWeatherDescription(code);
+
+                        const popupContent = `<b>${site.name}</b><br>
+                                              Type: ${site.type}<br>
+                                              Temp: ${temp} °F<br>
+                                              Weather: ${weatherDesc}<br>
+                                              <a href="/facility/${site.id}?q={{ request.GET.q }}">View Details</a>`;
+
+                        L.marker([site.lat, site.lon]).addTo(map)
+                            .bindPopup(popupContent);
+                    })
+                    .catch(error => {
+                        console.error("Weather API error:", error);
+
+                        const popupContent = `<b>${site.name}</b><br>
+                                              Type: ${site.type}<br>
+                                              Weather: Unable to fetch<br>
+                                              <a href="/facility/${site.id}?q={{ request.GET.q }}">View Details</a>`;
+
+                        L.marker([site.lat, site.lon]).addTo(map)
+                            .bindPopup(popupContent);
+                    });
+            }
+        });
+
+        // Auto-locate user + get weather at user location
         if (navigator.geolocation) {
             navigator.geolocation.getCurrentPosition(
-                function(position) {
-                    var lat = position.coords.latitude;
-                    var lon = position.coords.longitude;
-                    var radiusGPS = 40233;
+                function (position) {
+                    const lat = position.coords.latitude;
+                    const lon = position.coords.longitude;
+                    const radius = 40233.6; // 25 miles
 
-                    // Add a marker at the user's location
-                    var userMarker = L.marker([lat, lon]).addTo(map)
-                        .bindPopup("<b>Your Location</b><br>Latitude: " + lat.toFixed(2) + "<br>Longitude: " + lon.toFixed(2) + "<br>Radius: 1 Mile.")
-                        .openPopup();
+                    // Fetch weather at user's location
+                    const userWeatherUrl = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true&temperature_unit=fahrenheit`;
 
-                    // Add a circle to represent the accuracy
-                    var accuracyCircle = L.circle([lat, lon], { radius: radiusGPS }).addTo(map);
+                    fetch(userWeatherUrl)
+                        .then(response => response.json())
+                        .then(weatherData => {
+                            const temp = weatherData.current_weather.temperature;
+                            const code = weatherData.current_weather.weathercode;
+                            const weatherDesc = getWeatherDescription(code);
 
-                    // Center the map on the user's location
-                    map.setView([lat, lon], 13);
+                            const userPopup = `<b>Your Location</b><br>
+                                               Latitude: ${lat.toFixed(2)}<br>
+                                               Longitude: ${lon.toFixed(2)}<br>
+                                               Temp: ${temp} °F<br>
+                                               Weather: ${weatherDesc}<br>
+                                               Radius: 25 Mile.`;
+
+                            L.marker([lat, lon]).addTo(map)
+                                .bindPopup(userPopup)
+                                .openPopup();
+
+                            L.circle([lat, lon], {
+                                radius: radius,
+                                color: '#007bff',
+                                fillColor: '#007bff',
+                                fillOpacity: 0.2
+                            }).addTo(map);
+
+                            map.setView([lat, lon], 11);
+                        })
+                        .catch(error => {
+                            console.error("User weather fetch failed:", error);
+
+                            const fallbackPopup = `<b>Your Location</b><br>
+                                                   Latitude: ${lat.toFixed(2)}<br>
+                                                   Longitude: ${lon.toFixed(2)}<br>
+                                                   Weather: Unable to fetch<br>
+                                                   Radius: 25 Mile.`;
+
+                            L.marker([lat, lon]).addTo(map)
+                                .bindPopup(fallbackPopup)
+                                .openPopup();
+
+                            L.circle([lat, lon], {
+                                radius: radius,
+                                color: '#007bff',
+                                fillColor: '#007bff',
+                                fillOpacity: 0.2
+                            }).addTo(map);
+
+                            map.setView([lat, lon], 11);
+                        });
                 },
-                function(error) {
-                    alert("Error retrieving location: " + error.message);
+                function (error) {
+                    console.warn("Geolocation error: " + error.message);
                 }
             );
         } else {
-            alert("Geolocation is not supported by this browser.");
+            console.warn("Geolocation not supported.");
         }
-    }
-        // Add markers to the map
-        campsites.forEach(function (site) {
-            if (site.lat && site.lon) {
-                L.marker([site.lat, site.lon]).addTo(map)
-                    .bindPopup(`<b>${site.name}</b><br>Type: ${site.type}<br>
-                                <a href="/facility/${site.id}?q={{ request.GET.q }}">View Details</a>`);
-            }
-        });
     });
 
+    // Helper to interpret weather codes
+    function getWeatherDescription(code) {
+        const map = {
+            0: 'Clear sky',
+            1: 'Mainly clear',
+            2: 'Partly cloudy',
+            3: 'Overcast',
+            45: 'Fog',
+            48: 'Depositing rime fog',
+            51: 'Light drizzle',
+            53: 'Moderate drizzle',
+            55: 'Dense drizzle',
+            56: 'Light freezing drizzle',
+            57: 'Dense freezing drizzle',
+            61: 'Slight rain',
+            63: 'Moderate rain',
+            65: 'Heavy rain',
+            66: 'Light freezing rain',
+            67: 'Heavy freezing rain',
+            71: 'Slight snowfall',
+            73: 'Moderate snowfall',
+            75: 'Heavy snowfall',
+            77: 'Snow grains',
+            80: 'Slight rain showers',
+            81: 'Moderate rain showers',
+            82: 'Violent rain showers',
+            85: 'Slight snow showers',
+            86: 'Heavy snow showers',
+            95: 'Thunderstorm',
+            96: 'Thunderstorm w/ slight hail',
+            99: 'Thunderstorm w/ heavy hail'
+        };
+        return map[code] || 'Unknown';
+    }
 </script>
 
 
