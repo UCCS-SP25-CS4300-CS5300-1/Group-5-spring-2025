@@ -2,7 +2,7 @@ name: campmate
 services:
   - name: web
     image:
-      registry_type: REGISTRY_EXTERNAL
+      registry_type: DOCKER_HUB
       repository: ghcr.io/${{ secrets.LOWERCASE_GHCR_REPO }}
       tag: latest
     run_command: gunicorn myproject.wsgi:application --bind 0.0.0.0:8080
