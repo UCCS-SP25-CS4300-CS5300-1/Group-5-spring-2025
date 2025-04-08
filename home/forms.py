@@ -15,11 +15,19 @@ class CampUserCreationForm(UserCreationForm):
 
 
 
+
+
 class TripDetailsForm(forms.ModelForm):
+    number_of_people = forms.TypedChoiceField(
+        choices=[(i, str(i)) for i in range(1, 11)],  # Options 1 through 10
+        coerce=int,  # This converts the submitted value to an integer
+        widget=forms.Select(attrs={'class': 'form-control'})
+    )
+
     class Meta:
         model = TripDetails
         fields = ['start_date', 'end_date', 'number_of_people']
         widgets = {
-            'start_date': forms.DateInput(attrs={'type': 'date'}),
-            'end_date': forms.DateInput(attrs={'type': 'date'}),
+            'start_date': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
+            'end_date': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
         }

@@ -61,16 +61,17 @@
 
 {% block content %}
 <h2>{{ user.username }}'s Trip to {{ trip.facility.name }}</h2>
-<p2><strong>From</strong> {{ trip.start_date }} <strong>to</strong> {{ trip.end_date }}</p2>
-<p2><strong> for {{ trip.number_of_people }} people.</strong></p2><br><br>
+<p><strong>From</strong> {{ trip.start_date }} <strong>to</strong> {{ trip.end_date }}</p>
+<p><strong> for {{ trip.number_of_people }} people.</strong></p><br><br>
 
 <h3>Packing List</h3>
 <div class="inbox" id="packingListContainer"></div>
-<br><br>
-<form method="post" action="{% url 'cancel_trip' %}">
+<br>
+<form method="post" action="{% url 'cancel_trip' %}?trip_id={{ trip.id }}">
   {% csrf_token %}
   <button type="submit" class="btn btn-primary">Delete</button>
 </form>
+
 
 <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
 <script>

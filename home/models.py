@@ -39,7 +39,7 @@ class TripDetails(models.Model):
     
 
     def __str__(self):
-        return f"{self.user.username}'s Trip to {self.facility.name} on {self.start_date}"
+        return f"{self.user.user.username}'s Trip to {self.facility.name} on {self.start_date}"
 
 
 # models has the CampUser class, Amenities class,

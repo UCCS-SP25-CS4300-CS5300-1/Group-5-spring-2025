@@ -243,14 +243,16 @@ def confirm_trip(request):
 @login_required
 def cancel_trip(request):
     # When the user clicks "Start Over", delete the temporary trip and clear the session data.
-    trip_id = request.session.get('trip_preview_id')
+    trip_id = request.session.get('trip_preview_id') or request.GET.get('trip_id')
     if trip_id:
         try:
-            trip = TripDetails.objects.get(id=trip_id)
+            trip = TripDetails.objects.get(id=trip_id, user=request.user.userprofile)
             trip.delete()
         except TripDetails.DoesNotExist:
             pass
-        del request.session['trip_preview_id']
+        # Safely delete the session key if it exists and matches
+        if request.session.get('trip_preview_id') == int(trip_id):
+            del request.session['trip_preview_id']
     return redirect('user_profile')  
 
 @login_required
