@@ -42,7 +42,7 @@ class TripDetails(models.Model):
     
 
     def __str__(self):
-        facilities = " ,".join([f.name for f in self.facility.a()])
+        facilities = " ,".join([f.name for f in self.facility.all()])
         return f"{self.user.user.username}'s Trip to {facilities} on {self.start_date}"
 
 

@@ -200,7 +200,15 @@ def delete_facility(request, facility_id):
 @login_required
 def create_trip_async(request, facility_id):
     if request.method == 'POST':
-        facility = get_object_or_404(Facility, id=facility_id)
+        # list of favorite facilities
+        selected_facility_ids = request.POST.getlist('favorite_facilities')
+        selected_facility = Facility.objects.filter(id__in=selected_facility_ids)
+
+        # fetching the facility ID for the location pressed on user profile
+        if facility_id:
+            facility = get_object_or_404(Facility, id=facility_id)
+            selected_facility = selected_facility | Facility.objects.filter(id=facility.id)
+
         form = TripDetailsForm(request.POST)
         if form.is_valid():
             trip_data = form.cleaned_data
@@ -210,7 +218,7 @@ def create_trip_async(request, facility_id):
             
             # Generate packing list using OpenAI
             prompt = (
-                f"Generate a packing list for {number_of_people} people camping at {facility.name} "
+                f"Generate a packing list for {number_of_people} people camping at {", ".join([facility.name for facility in selected_facility])} "
                 f"from {start_date} to {end_date}. Focus on essentials. Consider the weather at this time and location. Give response in a comma separated list"
             )
             try:
@@ -235,7 +243,7 @@ def create_trip_async(request, facility_id):
             )
             
             #correctly setting the data for a Many to Many field
-            trip.facility.set([facility])
+            trip.facility.set(selected_facility)
 
             # Store the trip id in session for preview
             request.session['trip_preview_id'] = trip.id
