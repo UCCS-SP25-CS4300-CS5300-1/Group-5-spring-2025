@@ -12,10 +12,10 @@ https://docs.djangoproject.com/en/4.2/ref/settings/
 
 from pathlib import Path
 from decouple import config
+import os
 
 #I know this is bad. Need to get together with Robert to figure out how to store in production environment variablesgit 
-OPENAI_API_KEY="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"
-
+OPENAI_API_KEY=os.getenv("OPENAI_API_KEY")
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -31,7 +31,7 @@ STATIC_ROOT = BASE_DIR / 'home/static' ## not sure if correct..
 SECRET_KEY = 'django-insecure-^xd9yybzt^p4y0h%6vz-q5)ijhuj94pq92$(e9_a+ug!=5qq#0'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+DEBUG = True
 
 ALLOWED_HOSTS = [
       'editor-advsedjango-5.devedu.io',

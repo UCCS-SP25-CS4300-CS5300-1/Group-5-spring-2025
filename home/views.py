@@ -228,13 +228,15 @@ def create_trip_async(request, facility_id):
             # Create a temporary TripDetails instance
             trip = TripDetails.objects.create(
                 user=request.user.userprofile,
-                facility=facility,
                 start_date=start_date,
                 end_date=end_date,
                 number_of_people=number_of_people,
                 packing_list=packing_list,
             )
             
+            #correctly setting the data for a Many to Many field
+            trip.facility.set([facility])
+
             # Store the trip id in session for preview
             request.session['trip_preview_id'] = trip.id
 
