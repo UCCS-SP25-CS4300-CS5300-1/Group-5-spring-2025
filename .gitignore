@@ -171,3 +171,7 @@ cython_debug/
 
 #IGNORE VIRTUAL ENVIRONMENT
 camp_mate_venv/
+
+#IGNORE LINT REPORTS
+flake8-report/
+pylint-report.txt
