@@ -2,7 +2,6 @@ name: Lint Code
 
 on:
   push:
-    branches: abi_dev
   pull_request:
     branches: [ main ]
 
@@ -16,7 +15,7 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
-          python-version: '3.12.3' # Our specific python version for this Django version
+          python-version: '3.12' # Our specific python version for this Django version
 
       - name: Install dependencies
         run: |
