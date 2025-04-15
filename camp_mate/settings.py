@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/4.2/ref/settings/
 """
 
 from pathlib import Path
+import secrets
 from decouple import config
 
 #I know this is bad. Need to get together with Robert to figure out how to store in production environment variablesgit 
@@ -29,7 +30,7 @@ STATIC_ROOT = BASE_DIR / 'staticfiles'
 # See https://docs.djangoproject.com/en/4.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-^xd9yybzt^p4y0h%6vz-q5)ijhuj94pq92$(e9_a+ug!=5qq#0'
+SECRET_KEY = secrets.token_urlsafe(64) ## Should be imported or generated in a better secrets env
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = False
