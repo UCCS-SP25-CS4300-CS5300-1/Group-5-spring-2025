@@ -40,12 +40,15 @@ ALLOWED_HOSTS = [
       'campmate-cs4300-ey35p.ondigitalocean.app',
       'campmate.ddns.net',
       '146.190.139.92',
+      '54.213.17.138',
 ]
 
 CSRF_TRUSTED_ORIGINS = [
     'https://campmate-cs4300-ey35p.ondigitalocean.app/',
     'https://campmate.ddns.net',
-    'http://146.190.139.92/'
+    'http://146.190.139.92/',
+    'http://54.213.17.138/',
+    'https://54.213.17.138/',
 ]
 
 
