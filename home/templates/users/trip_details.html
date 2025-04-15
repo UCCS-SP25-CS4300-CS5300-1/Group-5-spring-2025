@@ -60,7 +60,11 @@
 {% endblock %}
 
 {% block content %}
-<h2>{{ user.username }}'s Trip to {{ trip.facility.name }}</h2>
+<h2>{{ user.username }}'s Trip to
+  {% for facility in trip.facility.all %}
+  {{ facility.name }}{% if not forloop.last %}, {% endif %}
+  {% endfor %}
+</h2>
 <p><strong>From</strong> {{ trip.start_date }} <strong>to</strong> {{ trip.end_date }}</p>
 <p><strong> for {{ trip.number_of_people }} people.</strong></p><br><br>
 
