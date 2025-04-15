@@ -31,7 +31,7 @@ STATIC_ROOT = BASE_DIR / 'home/static' ## not sure if correct..
 SECRET_KEY = 'django-insecure-^xd9yybzt^p4y0h%6vz-q5)ijhuj94pq92$(e9_a+ug!=5qq#0'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+DEBUG = True
 
 ALLOWED_HOSTS = [
       'editor-advsedjango-5.devedu.io',
