@@ -288,7 +288,14 @@ def cancel_trip(request):
         # Safely delete the session key if it exists and matches
         if request.session.get('trip_preview_id') == int(trip_id):
             del request.session['trip_preview_id']
-    return redirect('user_profile')  
+    return redirect('user_profile')
+
+@login_required
+def edit_trip(request):
+
+
+    return redirect('user_profile')
+
 
 @login_required
 def trip_detail(request, trip_id):
