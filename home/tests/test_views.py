@@ -201,12 +201,13 @@ class TripViewsTest(TestCase):
     def test_trip_preview_view(self):
         trip = TripDetails.objects.create(
             user=self.user_profile,
-            facility=self.facility,
             start_date=date(2025, 6, 1),
             end_date=date(2025, 6, 3),
             number_of_people=2,
             packing_list='Tent, Flashlight'
         )
+        trip.facility.set([self.facility])
+
         session = self.client.session
         session['trip_preview_id'] = trip.id
         session.save()
@@ -218,10 +219,11 @@ class TripViewsTest(TestCase):
     def test_confirm_trip_clears_session(self):
         trip = TripDetails.objects.create(
             user=self.user_profile,
-            facility=self.facility,
             start_date=date(2025, 6, 1),
             end_date=date(2025, 6, 3),
         )
+        trip.facility.set([self.facility])
+
         session = self.client.session
         session['trip_preview_id'] = trip.id
         session.save()
@@ -235,10 +237,10 @@ class TripViewsTest(TestCase):
     def test_cancel_trip_deletes_and_redirects(self):
         trip = TripDetails.objects.create(
             user=self.user_profile,
-            facility=self.facility,
             start_date=date(2025, 6, 1),
             end_date=date(2025, 6, 3),
         )
+        trip.facility.set([self.facility])
         session = self.client.session
         session['trip_preview_id'] = trip.id
         session.save()
@@ -251,12 +253,13 @@ class TripViewsTest(TestCase):
     def test_trip_detail_view(self):
         trip = TripDetails.objects.create(
             user=self.user_profile,
-            facility=self.facility,
             start_date=date(2025, 6, 1),
             end_date=date(2025, 6, 3),
             packing_list="Tent, Flashlight"
         )
+        trip.facility.set([self.facility])
+
         response = self.client.get(reverse('trip_detail', kwargs={'trip_id': trip.id}))
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, trip.facility.name)
+        self.assertContains(response, self.facility.name)
         self.assertContains(response, "Tent")
