@@ -26,6 +26,9 @@ jobs:
         with:
           python-version: 3.12.3
 
+      - name: Configure Environment for Staticfiles
+        run: python manage.py collectstatic --no-input
+
       - name: Install Dependencies
         run: |
           python -m pip install --upgrade pip
