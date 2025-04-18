@@ -23,6 +23,9 @@ from datetime import datetime
 from .forms import TripDetailsForm
 from django.shortcuts import render, get_object_or_404
 
+# Test, for calendar feature
+import calendar
+
 
 
 
@@ -303,4 +306,28 @@ def edit_trip(request):
 def trip_detail(request, trip_id):
     trip = get_object_or_404(TripDetails, id=trip_id)
     return render(request, 'users/trip_details.html', {'trip': trip})
+
+
+# generate calendar 
+@login_required
+def calendar_view(request):
+    now = datetime.now()
+    year = now.year
+    month = now.month
+    trips = TripDetails.objects.filter(user = request.user.userprofile)
+
+    # create calendar object
+    # calendar object code can be viewed in utils.py
+    cal_obj = MyHTMLCalendar(trips, year, month)
+    # from calendar object, create html calendar for template
+    html_cal = cal_obj.formatmonth()
+
+    context = {
+        'calendar': html_cal,
+        'month': month,
+        'year': year
+    }
+
+    return render(request, 'users/calendar.html', context)
+
 

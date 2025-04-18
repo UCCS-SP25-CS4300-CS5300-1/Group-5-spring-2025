@@ -2,6 +2,10 @@ import requests
 from django.conf import settings
 from .models import *
 
+from calendar import HTMLCalendar
+from datetime import date
+
+
 # this is my api key for RIDB 
 RIDB_API_KEY = "3d213c37-c624-440f-aec2-68ac2728b395"
 
@@ -172,6 +176,53 @@ def return_facility_url(facility_id):
     else:
         return {}
 
+
+# calendar stuff
+# create a custom class based off python's built-in html calendar
+# note: i wanted to incorporate bootstrap into the html calendar, so i have to override the methods of the class in order to have
+# bootstrap formatting. 
+# based off this documentation: https://docs.python.org/3/library/calendar.html 
+class MyHTMLCalendar(HTMLCalendar):
+    def __init__(self, trips, year, month):
+        super().__init__()
+        self.trips = trips
+        self.year = year
+        self.month = month
+    '''
+    Return a string representing a single day. if day is 0, return a string representing empty day (for days bordering or trailing months) 
+    Weekday paramter is unused. 
+    '''
+    def formatday(self, day, weekday):
+        if day == 0:
+            return '<td class="table-secondary"></td>' 
+        
+        current_date = date(self.year, self.month, day)
+        trip_days = [trip for trip in self.trips if trip.start_date <= current_date <= trip.end_date]
+        if trip_days:
+            return f'<td class="bg-success text-white"><span class="badge bg-primary">{day}</span></td>'
+        return f'<td class="table-light text-center">{day}</td>'
+
+    '''
+    Return a string representing a single week with no newline. uses formatday func to do this, iterating through all days in a week
+    '''
+    def formatweek(self, theweek):
+        week_html = ''.join(self.formatday(d, wd) for d, wd in theweek)
+        return f'<tr>{week_html}</tr>'
+
+    '''
+    Return a month's calendar in a multiline string (bootstrap table)
+    withyear=True means the year will be included in the output
+    '''
+    def formatmonth(self, withyear=True):
+        cal = f'<table class="table table-bordered table-sm table-hover">'
+        cal += f'{self.formatmonthname(self.year, self.month, withyear=withyear)}'
+        cal += f'{self.formatweekheader()}'
+        # monthdays2calendar returns a list of the weeks in the month of the year as full weeks; weeks are lists of seven tuples of day numbers and 
+        # weekday numbers 
+        for week in self.monthdays2calendar(self.year, self.month):
+            cal += self.formatweek(week)
+        cal += '</table>'
+        return cal
 
 
 

@@ -32,6 +32,7 @@ urlpatterns = [
     path('profile/', views.user_profile,name='user_profile'),
     path('login/', auth_views.LoginView.as_view(), name='login'),
     path('logout/', views.logoutUser, name='logout'),
+    path('calendar/', views.calendar_view, name='calendar'),
 
 
 ]

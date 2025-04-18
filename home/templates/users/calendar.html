@@ -1,0 +1,26 @@
+{% extends "base_user_template.html" %}
+{% load static %}
+{% block content %}
+
+<!-- doing extra css to override the body element from base, since i want diff bg image -->
+{% block extra_css %}
+    <style>
+        body {
+            background: url("{% static 'images/test.png' %}");
+            background-size: cover;
+            background-attachment: fixed;
+            background-repeat: no-repeat;
+            background-position: center;
+        }
+    </style>
+{% endblock %}
+
+<h2>{{ month }} {{ year }}</h2>
+<div>
+    {{calendar|safe}}
+</div>
+
+
+
+{% endblock %}
+
