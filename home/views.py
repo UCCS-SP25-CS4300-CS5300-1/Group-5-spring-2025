@@ -293,10 +293,27 @@ def cancel_trip(request):
     return redirect('user_profile')
 
 @login_required
-def edit_trip(request):
+def edit_trip(request, trip_id):
+    trip = get_object_or_404(TripDetails, id=trip_id)
 
+    if request.method == "POST":
+        # Get the submitted data
+        start_date = request.POST.get('start_date')
+        end_date = request.POST.get('end_date')
+        number_of_people = request.POST.get('number_of_people')
+        facility_ids = request.POST.get('edit_facilities', '').split(',')
 
-    return redirect('user_profile')
+        # Update trip details
+        trip.start_date = start_date
+        trip.end_date = end_date
+        trip.number_of_people = number_of_people
+        facilities = Facility.objects.filter(id__in=facility_ids)
+        trip.facility.set(facilities)
+
+        trip.save()
+
+        return redirect('trip_detail', trip_id=trip.id)
+    return render(request, 'edit_trip.html', {'trip': trip})
 
 
 @login_required

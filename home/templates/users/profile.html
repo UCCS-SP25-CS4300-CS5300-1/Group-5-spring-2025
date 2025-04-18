@@ -96,7 +96,6 @@
         <div class="card-footer text-center bg-light">
 
         <!-- Saved Trips -->
-        <h2 class="mb-0 text-center">Saved Trips</h2>
         <div class="row mt-4">
           {% for trip in trips %}
             <div class="col-md-6 col-lg-4 mb-4">
@@ -112,17 +111,36 @@
                     <strong>To:</strong> {{ trip.end_date }}<br>
                     <strong>People:</strong> {{ trip.number_of_people }}
                   </p>
-                  <a href="{% url 'trip_detail' trip.id %}" class="btn btn-primary">View Trip</a>
-                  <div class="mt-3">
-                    <a href="{% url 'edit_trip' trip.id %}" class="btn btn-primary">Edit Trip</a>
+        
+                  <!-- Buttons for View Trip, Edit Trip, and Delete Trip -->
+                  <div class="d-flex justify-content-center gap-2 mt-3">
+                    <!-- View Trip Button -->
+                    <a href="{% url 'trip_detail' trip.id %}" class="btn btn-info">
+                      <i class="fas fa-info-circle"></i> View Trip
                     </a>
-                </div>
-                  <form method="post" action="{% url 'cancel_trip' %}?trip_id={{ trip.id }}" style="display: inline;">
-                    {% csrf_token %}
-                    <button type="submit" class="btn btn-info mt-3">
-                        <i class="fas fa-trash-alt"></i> Delete 
+        
+                    <!-- Edit Trip Button -->
+                    <button 
+                      type="button" 
+                      class="btn btn-success edit-trip-btn"
+                      data-toggle="modal"
+                      data-target="#editTripModal"
+                      data-trip-id="{{ trip.id }}"
+                      data-start-date="{{ trip.start_date|date:'Y-m-d' }}"
+                      data-end-date="{{ trip.end_date|date:'Y-m-d' }}"
+                      data-number-of-people="{{ trip.number_of_people }}"
+                      data-selected-facilities='[{% for f in trip.facility.all %}{{ f.id }}{% if not forloop.last %},{% endif %}{% endfor %}]'>
+                      <i class="fas fa-edit"></i> Edit Trip
                     </button>
-                  </form>
+        
+                    <!-- Delete Trip Form -->
+                    <form method="post" action="{% url 'cancel_trip' %}?trip_id={{ trip.id }}" style="display: inline;">
+                      {% csrf_token %}
+                      <button type="submit" class="btn btn-danger">
+                        <i class="fas fa-trash-alt"></i> Delete 
+                      </button>
+                    </form>
+                  </div>
                 </div>
               </div>
             </div>
@@ -202,25 +220,124 @@
   </div>
 </div>
 
+<!-- Edit Trip Modal -->
+<div class="modal fade" id="editTripModal" tabindex="-1" role="dialog" aria-labelledby="editTripModalLabel" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <form id="editTripForm" method="POST" action="">
+      {% csrf_token %}
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="editTripModalLabel">Edit Trip</h5>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div class="modal-body">
+
+          <input type="hidden" name="trip_id" id="edit_trip_id" value="">
+
+          <div class="form-group">
+            <label>Select Facilities:</label>
+            <div class="custom-checkbox-grid" id="edit-facility-checkboxes">
+              {% for campsite in user.userprofile.favorited_loc.all %}
+                <label class="custom-checkbox">
+                  <input type="checkbox" name="edit_facilities" value="{{ campsite.id }}">
+                  <span class="checkbox-label">{{ campsite.name }}</span>
+                </label>
+              {% endfor %}
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="edit_start_date">Start Date:</label>
+            <input type="date" class="form-control" name="start_date" id="edit_start_date" required>
+          </div>
+          <div class="form-group">
+            <label for="edit_end_date">End Date:</label>
+            <input type="date" class="form-control" name="end_date" id="edit_end_date" required>
+          </div>
+          <div class="form-group">
+            <label for="edit_number_of_people">Number of People:</label>
+            <input type="number" class="form-control" name="number_of_people" id="edit_number_of_people" required min="1">
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-primary">Save Changes</button>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+
 <!-- JavaScript -->
 <script>
-$(document).ready(function(){
-    // Update form action based on clicked button
-    $('.lets-pack-btn').click(function(){
-        var facilityId = $(this).data('facility-id');
-        var formAction = '/trip/create/' + facilityId + '/';
-        $('#tripForm').attr('action', formAction);
-    });
-
-    // On submit, gather selected checkboxes into hidden input
-    $('#tripForm').on('submit', function() {
-        var selected = [];
-        $('#facility-checkboxes input[type="checkbox"]:checked').each(function() {
-            selected.push($(this).val());
-        });
-        $('#facility_ids').val(selected.join(','));
-    });
-});
-</script>
-
-{% endblock %}
+  $(document).ready(function(){
+      $('.lets-pack-btn').click(function(){
+          var facilityId = $(this).data('facility-id');
+  
+          // Set the form action (optional – depends on your backend setup)
+          $('#tripForm').attr('action', '/trip/create/' + facilityId + '/');
+  
+          // Uncheck all checkboxes and make them visible again
+          $('#facility-checkboxes input[type="checkbox"]').prop('checked', false).closest('label').show();
+  
+          // Hide the selected facility so it can't be selected again
+          $('#facility-checkboxes input[value="' + facilityId + '"]').closest('label').hide();
+      });
+  
+      // Collect selected facilities on submit
+      $('#tripForm').on('submit', function() {
+          var selected = [];
+          $('#facility-checkboxes input[type="checkbox"]:checked').each(function() {
+              selected.push($(this).val());
+          });
+          $('#facility_ids').val(selected.join(','));
+      });
+  
+      // Edit Trip button clicked – populate modal
+      $('.edit-trip-btn').on('click', function () {
+          const tripId = $(this).data('trip-id');
+          const startDate = $(this).data('start-date');
+          const endDate = $(this).data('end-date');
+          const numberOfPeople = $(this).data('number-of-people');
+          const selectedFacilities = $(this).data('selected-facilities').toString().split(',');
+  
+          $('#edit_trip_id').val(tripId);
+          $('#edit_start_date').val(startDate);
+          $('#edit_end_date').val(endDate);
+          $('#edit_number_of_people').val(numberOfPeople);
+  
+          // Reset all checkboxes
+          $('#edit-facility-checkboxes input[type="checkbox"]').prop('checked', false);
+  
+          // Check previously selected facilities
+          selectedFacilities.forEach(function (id) {
+              $('#edit-facility-checkboxes input[value="' + id + '"]').prop('checked', true);
+          });
+  
+          // Set the form action dynamically
+          $('#editTripForm').attr('action', `/trip/edit/${tripId}/`);
+      });
+  
+      // On edit form submit, collect selected checkboxes into a hidden input
+      $('#editTripForm').on('submit', function () {
+          var selected = [];
+          $('#edit-facility-checkboxes input[type="checkbox"]:checked').each(function () {
+              selected.push($(this).val());
+          });
+  
+          // Remove any existing hidden input
+          $('#editTripForm input[name="edit_facilities"]').remove();
+  
+          // Add new hidden input with comma-separated values
+          $('<input>').attr({
+              type: 'hidden',
+              name: 'edit_facilities',
+              value: selected.join(',')
+          }).appendTo('#editTripForm');
+      });
+  });
+  </script>
+  
+  {% endblock %}
