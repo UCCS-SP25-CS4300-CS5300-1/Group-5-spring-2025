@@ -75,21 +75,6 @@ jobs:
           bash scripts/pipreqs.sh pipreqs.txt
           echo "Consider updating requirements.txt: " 
           uniq pipreqs.txt | tr '[:upper:]' '[:lower:]'
-      
-      - name: Comment on Pull Request with Dependency Updates
-        if: github.event_name == 'pull_request'
-        uses: actions/github-script@v6
-        with:
-          script: |
-            const fs = require('fs');
-            const dependencies = fs.readFileSync('pipreqs.txt', 'utf8');
-            const commentBody = `### Dependency Updates Suggested\n\`\`\`\n${dependencies}\n\`\`\`\nPlease review and update \`requirements.txt\` if necessary.`;
-            await github.rest.issues.createComment({
-              issue_number: context.payload.pull_request.number,
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              body: commentBody
-            });
 
   security-audit:
     name: Security Audits and Testing
