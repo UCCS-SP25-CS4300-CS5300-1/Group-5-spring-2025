@@ -64,17 +64,32 @@ jobs:
 
         ## Better python tool management
         ### https://docs.astral.sh/uv/
-      - name: Install `uv`
+      - name: Install uv Module
         run: pip install uv
 
         ## Dynamically update and display changes to requirements.txt based on source code
         ### displays changes from prior to current in the pipeline logs
-      - name: Generate `requirements.txt` from Source
+      - name: Generate `requirements.txt` from Source w/ pipreqs
         run: |
           uvx pipreqs --savepath pipreqs.txt .
           bash scripts/pipreqs.sh pipreqs.txt
           echo "Consider updating requirements.txt: " 
           uniq pipreqs.txt | tr '[:upper:]' '[:lower:]'
+      
+      - name: Comment on Pull Request with Dependency Updates
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const fs = require('fs');
+            const dependencies = fs.readFileSync('pipreqs.txt', 'utf8');
+            const commentBody = `### Dependency Updates Suggested\n\`\`\`\n${dependencies}\n\`\`\`\nPlease review and update \`requirements.txt\` if necessary.`;
+            await github.rest.issues.createComment({
+              issue_number: context.payload.pull_request.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: commentBody
+            });
 
   security-audit:
     name: Security Audits and Testing
@@ -91,8 +106,8 @@ jobs:
 
       - name: Install Dependencies
         run: |
-          pip install uv  
-          uv pip install -r requirements.txt
+          pip install uv
+          pip install -r requirements.txt
           
 
       - name: Run Bandit Security Scan
