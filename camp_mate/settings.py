@@ -79,7 +79,7 @@ MIDDLEWARE = [
 
 ## Whitenoise caching and gzip compression
 # Compress static files automatically (e.g., generate .gz files for browsers that support them)
-STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedStaticFilesStorage'
 
 ROOT_URLCONF = 'camp_mate.urls'
 
