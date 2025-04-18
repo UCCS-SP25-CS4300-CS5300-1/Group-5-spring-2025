@@ -12,6 +12,7 @@ from home.models import Facility
 from home.utils import return_facility_detail, search_facilities
 from django.contrib.auth import logout
 from .forms import *
+import requests
 
 
 #FOR AI STUFF
@@ -296,9 +297,69 @@ def edit_trip(request):
 
     return redirect('user_profile')
 
+import requests
 
 @login_required
 def trip_detail(request, trip_id):
     trip = get_object_or_404(TripDetails, id=trip_id)
-    return render(request, 'users/trip_details.html', {'trip': trip})
 
+    # Assume one facility per trip for simplicity (or average lat/lon for multiple)
+    facility = trip.facility.first()
+    weather_forecast = []
+    hazards_detected = False
+
+    if facility:
+        lat = facility.latitude
+        lon = facility.longitude
+
+        # Format trip dates
+        start_date = trip.start_date.strftime('%Y-%m-%d')
+        end_date = trip.end_date.strftime('%Y-%m-%d')
+
+        # Request weather forecast
+        url = (
+            f"https://api.open-meteo.com/v1/forecast"
+            f"?latitude={lat}&longitude={lon}"
+            f"&start_date={start_date}&end_date={end_date}"
+            f"&daily=temperature_2m_max,temperature_2m_min,weathercode"
+            f"&timezone=auto"
+        )
+        response = requests.get(url)
+
+        if response.status_code == 200:
+            data = response.json()
+            daily = zip(
+                data['daily']['time'],
+                data['daily']['temperature_2m_max'],
+                data['daily']['temperature_2m_min'],
+                data['daily']['weathercode']
+            )
+
+            # Map weather codes to readable conditions
+            code_map = {
+                61: 'Moderate rainfall', 63: 'Heavy rain', 65: 'Very heavy rain',
+                71: 'Moderate snowfall', 73: 'Heavy snowfall', 95: 'Thunderstorm',
+                96: 'Thunderstorm w/ slight hail', 99: 'Thunderstorm w/ heavy hail',
+                85: 'Heavy snow showers', 81: 'Violent rain showers',
+                57: 'Dense freezing drizzle', 66: 'Heavy freezing rain',
+                # Add others if needed
+            }
+
+            for date, tmax, tmin, code in daily:
+                condition = code_map.get(code, "Unknown")
+                weather_forecast.append({
+                    'date': date,
+                    'temp_max': round(tmax * 9/5 + 32),  # convert to F
+                    'temp_min': round(tmin * 9/5 + 32),
+                    'condition': condition
+                })
+
+            # Check for hazards
+            hazards_found = check_hazards(weather_forecast)
+            hazards_detected = len(hazards_found) > 0
+
+    return render(request, 'users/trip_details.html', {
+        'trip': trip,
+        'weather_forecast': weather_forecast,
+        'hazards_detected': hazards_detected
+    })

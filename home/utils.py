@@ -174,4 +174,17 @@ def return_facility_url(facility_id):
 
 
 
+def fetch_weather(lat, lon, start_date, end_date):
+    url = (
+        f"https://api.open-meteo.com/v1/forecast"
+        f"?latitude={lat}&longitude={lon}"
+        f"&start_date={start_date}&end_date={end_date}"
+        f"&daily=temperature_2m_max,temperature_2m_min,weathercode"
+        f"&timezone=auto"
+    )
+    res = requests.get(url)
+    if res.status_code == 200:
+        return res.json()
+    return None
+
 
