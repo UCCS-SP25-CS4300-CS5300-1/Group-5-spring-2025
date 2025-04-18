@@ -117,7 +117,7 @@ jobs:
     name: Upload Image to Dockerhub
     runs-on: ubuntu-latest
     needs: test-coverage
-    if: github.event_name == 'pull_request' && github.base_ref == 'main'
+    if: github.event_name == 'push' && github.ref == 'refs/head/main'
     steps:
       - name: Login to Docker Hub
         uses: docker/login-action@v3
@@ -135,7 +135,7 @@ jobs:
     name: Deploy to AWS EC2 Instance
     runs-on: ubuntu-latest
     needs: deploy-docker-hub
-    if: github.event_name == 'pull_request' && github.base_ref == 'main'
+    if: github.event_name == 'push' && github.ref == 'refs/head/main'
     steps:
       - name: Checkout Code
         uses: actions/checkout@v3
