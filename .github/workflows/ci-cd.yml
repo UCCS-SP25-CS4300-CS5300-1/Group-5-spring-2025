@@ -9,7 +9,8 @@ on:
       - '*'
   pull_request:
     branches:
-      - main ## Execute all jobs when pull request to main
+      - main ## Execute all jobs when pull request to main or dev
+      - 'dev*' ## Ensure PR's into dev branch execute all jobs
 
 jobs:
   test-coverage:
