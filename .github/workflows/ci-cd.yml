@@ -3,8 +3,6 @@ run-name: CI/CD pipeline executed by @${{ github.actor }}
 
 on:
   push:
-    paths:
-      - '**.py' ## Execute on push only when *.py files have changed?
     branches:
       - '*'
   pull_request:
