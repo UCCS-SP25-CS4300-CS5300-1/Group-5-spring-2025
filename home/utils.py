@@ -182,6 +182,7 @@ def return_facility_url(facility_id):
 # note: i wanted to incorporate bootstrap into the html calendar, so i have to override the methods of the class in order to have
 # bootstrap formatting. 
 # based off this documentation: https://docs.python.org/3/library/calendar.html 
+# code thats overwritten can be found here https://github.com/python/cpython/blob/3.13/Lib/calendar.py 
 class MyHTMLCalendar(HTMLCalendar):
     def __init__(self, trips, year, month):
         super().__init__()
@@ -193,7 +194,9 @@ class MyHTMLCalendar(HTMLCalendar):
     Weekday paramter is unused. 
     '''
     def formatday(self, day, weekday):
+        # day is a bordering day (day of past or next month)
         if day == 0:
+            # it will be greyed out
             return '<td class="table-secondary"></td>' 
         
         current_date = date(self.year, self.month, day)
@@ -214,8 +217,11 @@ class MyHTMLCalendar(HTMLCalendar):
     withyear=True means the year will be included in the output
     '''
     def formatmonth(self, withyear=True):
-        cal = f'<table class="table table-bordered table-sm table-hover">'
+        # this is how the whole table calendar itself is formated
+        # small, bordered, and color changes if hovering above row (might change later)
+        cal = f'<table class="table table-bordered table-sm">'
         cal += f'{self.formatmonthname(self.year, self.month, withyear=withyear)}'
+        # first calendar table row that shows month and year
         cal += f'{self.formatweekheader()}'
         # monthdays2calendar returns a list of the weeks in the month of the year as full weeks; weeks are lists of seven tuples of day numbers and 
         # weekday numbers 

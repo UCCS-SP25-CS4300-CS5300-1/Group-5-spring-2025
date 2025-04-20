@@ -17,11 +17,12 @@
 
 <div class="d-flex justify-content-between align-items-center mb-3">
     <a class="btn btn-outline-primary" href="{% url 'traverse_calendar' prevyear prevmonth %}">&laquo; Previous</a>
-    <h4>{{ month }}/{{ year }}</h4>
+    <h4>Your Calendar</h4>
     <a class="btn btn-outline-primary" href="{% url 'traverse_calendar' nextyear nextmonth %}">Next &raquo;</a>
 </div>
 
 <div class="table-responsive">
+    <!-- this is where the bootstrap comes in, from the views function, from the utils function -->
     {{ calendar|safe }}
 </div>
 

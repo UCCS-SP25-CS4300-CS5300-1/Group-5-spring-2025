@@ -315,6 +315,7 @@ def calendar_view(request, year=None, month=None):
     now = datetime.now()
     year = year or now.year
     month = month or now.month
+    # ah, a really silly way to resolve index error if user enters calendar/<year>/<some#waymorethan12> in searchbar
     month = month % 12
     trips = TripDetails.objects.filter(user = request.user.userprofile)
 
