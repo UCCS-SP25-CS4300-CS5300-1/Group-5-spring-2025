@@ -1,14 +1,19 @@
-from django.test import TestCase
-from django.urls import reverse
+from datetime import date
+
 from bs4 import BeautifulSoup
 from django.contrib.auth import get_user_model
-from home.models import Facility, UserProfile, TripDetails
-from datetime import date
+from django.test import TestCase
+from django.urls import reverse
+
+from home.models import Facility, TripDetails, UserProfile
+
 
 class TripDetailTemplateTests(TestCase):
     def setUp(self):
         CampUser = get_user_model()
-        self.user = CampUser.objects.create_user(username="testuser", password="password123")
+        self.user = CampUser.objects.create_user(
+            username="testuser", password="password123"
+        )
         self.user_profile = self.user.userprofile  # auto-created from signals
 
         self.facility = Facility.objects.create(
@@ -20,7 +25,7 @@ class TripDetailTemplateTests(TestCase):
             ada_accessibility="Y",
             phone="555-1234",
             email="info@camp.com",
-            description="Beautiful mountain base camping."
+            description="Beautiful mountain base camping.",
         )
 
         self.trip = TripDetails.objects.create(
@@ -29,13 +34,15 @@ class TripDetailTemplateTests(TestCase):
             start_date=date(2025, 6, 1),
             end_date=date(2025, 6, 5),
             number_of_people=3,
-            packing_list="Tent, Sleeping Bag, Lantern"
+            packing_list="Tent, Sleeping Bag, Lantern",
         )
 
         self.client.login(username="testuser", password="password123")
 
     def test_trip_detail_template_renders(self):
-        url = reverse("trip_detail", kwargs={"trip_id": self.trip.id})  # Adjust URL name if needed
+        url = reverse(
+            "trip_detail", kwargs={"trip_id": self.trip.id}
+        )  # Adjust URL name if needed
         response = self.client.get(url)
 
         self.assertEqual(response.status_code, 200)
@@ -49,7 +56,7 @@ class TripDetailTemplateTests(TestCase):
 
         # Format the dates as they appear in the rendered template (e.g., "June 1, 2025")
         formatted_start = self.trip.start_date.strftime("%B %-d, %Y")  # macOS/Linux
-        formatted_end = self.trip.end_date.strftime("%B %-d, %Y")      # macOS/Linux
+        formatted_end = self.trip.end_date.strftime("%B %-d, %Y")  # macOS/Linux
 
         # If you're on Windows, use this instead:
         # formatted_start = self.trip.start_date.strftime("%B %#d, %Y")
@@ -87,4 +94,3 @@ class TripDetailTemplateTests(TestCase):
         self.assertTrue(any("Tent" in script.text for script in scripts))
         self.assertTrue(any("Sleeping Bag" in script.text for script in scripts))
         self.assertTrue(any("Lantern" in script.text for script in scripts))
- 
