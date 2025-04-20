@@ -194,15 +194,17 @@ class MyHTMLCalendar(HTMLCalendar):
     Weekday paramter is unused. 
     '''
     def formatday(self, day, weekday):
-        # day is a bordering day (day of past or next month)
+        # if day is a bordering day (day of past or next month)
         if day == 0:
             # it will be greyed out
             return '<td class="table-secondary"></td>' 
         
         current_date = date(self.year, self.month, day)
         trip_days = [trip for trip in self.trips if trip.start_date <= current_date <= trip.end_date]
+        # if trip occurs within the current calendar
         if trip_days:
-            return f'<td class="bg-success text-white"><span class="badge bg-primary">{day}</span></td>'
+            # special format! 
+            return f'<td class="day-trip table-light text-center">{day}</td>'
         return f'<td class="table-light text-center">{day}</td>'
 
     '''

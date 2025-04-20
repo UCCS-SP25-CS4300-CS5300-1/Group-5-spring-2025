@@ -221,8 +221,15 @@ th.month {
     color: white;
     background-color: #407d64 !important;
 }
-
+/* this is for the calendar table's cell size format */
 td {
+    font-family: "Nunito", sans-serif;
+    font-weight: 500;
+    font-style: normal;
     width:150px !important;
     height:75px !important;
+}
+/* this is for days that user trips are applicable */
+.day-trip {
+    background-color: #ff930e !important;
 }
