@@ -309,12 +309,30 @@ def trip_detail(request, trip_id):
 
 
 # generate calendar 
+# year and month are optional. this is bc user can navigate to next month if desired
 @login_required
-def calendar_view(request):
+def calendar_view(request, year=None, month=None):
     now = datetime.now()
-    year = now.year
-    month = now.month
+    year = year or now.year
+    month = month or now.month
+    month = month % 12
     trips = TripDetails.objects.filter(user = request.user.userprofile)
+
+    # very naive logic for grabbing the next month and corresponding year 
+    # user can only traverse through one month at a time, backward or forward.
+    if month == 12:
+        nextmonth = 1
+        nextyear = year + 1
+    else:
+        nextmonth = month + 1
+        nextyear = year
+
+    if month == 1:
+        prevmonth = 12
+        prevyear = year - 1
+    else:
+        prevmonth = month - 1
+        prevyear = year
 
     # create calendar object
     # calendar object code can be viewed in utils.py
@@ -325,7 +343,11 @@ def calendar_view(request):
     context = {
         'calendar': html_cal,
         'month': month,
-        'year': year
+        'year': year,
+        'nextyear': nextyear,
+        'nextmonth': nextmonth,
+        'prevyear': prevyear,
+        'prevmonth': prevmonth
     }
 
     return render(request, 'users/calendar.html', context)
