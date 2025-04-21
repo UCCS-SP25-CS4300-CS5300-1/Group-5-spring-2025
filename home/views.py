@@ -31,6 +31,9 @@ from .utils import *
 import os
 import json
 
+# Test, for calendar feature
+import calendar
+
 
 
 
@@ -388,6 +391,52 @@ def chatbot_view(request):
 @login_required
 def trip_detail(request, trip_id):
     trip = get_object_or_404(TripDetails, id=trip_id)
+
+
+# generate calendar 
+# year and month are optional. this is bc user can navigate to next month if desired
+@login_required
+def calendar_view(request, year=None, month=None):
+    now = datetime.now()
+    year = year or now.year
+    month = month or now.month
+    # ah, a really silly way to resolve index error if user enters calendar/<year>/<some#waymorethan12> in searchbar
+    month = month % 12
+    trips = TripDetails.objects.filter(user = request.user.userprofile)
+
+    # very naive logic for grabbing the next month and corresponding year 
+    # user can only traverse through one month at a time, backward or forward.
+    if month == 12:
+        nextmonth = 1
+        nextyear = year + 1
+    else:
+        nextmonth = month + 1
+        nextyear = year
+
+    if month == 1:
+        prevmonth = 12
+        prevyear = year - 1
+    else:
+        prevmonth = month - 1
+        prevyear = year
+
+    # create calendar object
+    # calendar object code can be viewed in utils.py
+    cal_obj = MyHTMLCalendar(trips, year, month)
+    # from calendar object, create html calendar for template
+    html_cal = cal_obj.formatmonth()
+
+    context = {
+        'calendar': html_cal,
+        'month': month,
+        'year': year,
+        'nextyear': nextyear,
+        'nextmonth': nextmonth,
+        'prevyear': prevyear,
+        'prevmonth': prevmonth
+    }
+
+    return render(request, 'users/calendar.html', context)
 
     # handle AJAX update
     if request.method == "POST" and request.headers.get("x-requested-with") == "XMLHttpRequest":

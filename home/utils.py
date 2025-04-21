@@ -3,6 +3,11 @@ from django.conf import settings
 
 from .models import *
 
+from calendar import HTMLCalendar
+from datetime import date
+from django.urls import reverse
+from django.templatetags.static import static
+
 # this is my api key for RIDB
 RIDB_API_KEY = "3d213c37-c624-440f-aec2-68ac2728b395"
 
@@ -181,3 +186,64 @@ def return_facility_url(facility_id):
 
     else:
         return {}
+
+
+# calendar stuff
+# create a custom class based off python's built-in html calendar
+# note: i wanted to incorporate bootstrap into the html calendar, so i have to override the methods of the class in order to have
+# bootstrap formatting. 
+# based off this documentation: https://docs.python.org/3/library/calendar.html 
+# code thats overwritten can be found here https://github.com/python/cpython/blob/3.13/Lib/calendar.py 
+class MyHTMLCalendar(HTMLCalendar):
+    def __init__(self, trips, year, month):
+        super().__init__()
+        self.trips = trips
+        self.year = year
+        self.month = month
+
+    '''
+    Return a string representing a single day. if day is 0, return a string representing empty day (for days bordering or trailing months) 
+    Weekday parameter is unused. 
+    '''
+    def formatday(self, day, weekday):
+        
+        # if day is NOT a bordering day (day of past or next month)
+        if day != 0:
+            current_date = date(self.year, self.month, day)
+            # if trip occurs on weekday, format special w/ link to trip details 
+            for trip in self.trips:
+                if trip.start_date <= current_date <= trip.end_date:
+                    # have to do these
+                    trip_url = reverse('trip_detail', args=[trip.id])
+                    img_url = static('images/cm.png')
+                    return f'<td class="day-trip table-light text-center">{day} <br> <a href="{trip_url}"><img src="{img_url}"  width="60" height="60"></a> </td>'
+            # normal weekday, no trip
+            return f'<td class="table-light text-center">{day}</td>'
+        # bordering day 
+        return '<td class="table-secondary"></td>' 
+
+    '''
+    Return a string representing a single week with no newline. uses formatday func to do this, iterating through all days in a week
+    '''
+    def formatweek(self, theweek):
+        week_html = ''.join(self.formatday(d, wd) for d, wd in theweek)
+        return f'<tr>{week_html}</tr>'
+
+    '''
+    Return a month's calendar in a multiline string (bootstrap table)
+    withyear=True means the year will be included in the output
+    '''
+    def formatmonth(self, withyear=True):
+        # this is how the whole table calendar itself is formated
+        # small, bordered, and color changes if hovering above row (might change later)
+        cal = f'<table class="table table-bordered table-sm">'
+        cal += f'{self.formatmonthname(self.year, self.month, withyear=withyear)}'
+        # first calendar table row that shows month and year
+        cal += f'{self.formatweekheader()}'
+        # monthdays2calendar returns a list of the weeks in the month of the year as full weeks; weeks are lists of seven tuples of day numbers and 
+        # weekday numbers 
+        for week in self.monthdays2calendar(self.year, self.month):
+            cal += self.formatweek(week)
+        cal += '</table>'
+        return cal
+

@@ -18,6 +18,7 @@ import os
 
 OPENAI_API_KEY = config("OPENAI_API_KEY", default="dummy-key")
 
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
