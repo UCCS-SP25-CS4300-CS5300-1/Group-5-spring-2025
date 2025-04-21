@@ -303,7 +303,7 @@ class TripViewsTest(TestCase):
         
         
         
-         def test_trip_edit_view(self):
+    def test_trip_edit_view(self):
         trip = TripDetails.objects.create(
         user=self.user_profile,
         start_date=date(2025, 6, 1),
