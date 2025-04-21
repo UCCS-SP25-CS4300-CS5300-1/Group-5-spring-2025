@@ -21,6 +21,8 @@ urlpatterns = [
     path("trip/confirm/", views.confirm_trip, name="confirm_trip"),
     path("trip/cancel/", views.cancel_trip, name="cancel_trip"),
     path("trip/<int:trip_id>/", views.trip_detail, name="trip_detail"),
+    path('trip/<int:trip_id>/pdf/', views.trip_detail_pdf, name='trip_detail_pdf'),
+
     path("trip/create/<str:facility_id>/", views.create_trip_async, name="create_trip_async"),
     path('trip/edit/<int:trip_id>/', views.edit_trip, name='edit_trip'),
     # FOR USER
