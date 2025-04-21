@@ -1,24 +1,31 @@
 from datetime import datetime
 
-# FOR AI STUFF
+
 import openai
 from django.contrib.auth import logout
 from django.contrib.auth.decorators import login_required
 
-# FOR USER STUFF
+
 from django.contrib.auth.forms import UserCreationForm
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils.decorators import method_decorator
+from django.views.decorators.csrf import csrf_exempt
 
 from home.models import Facility
 from home.utils import return_facility_detail, search_facilities
-
+import re
 from .forms import *
 from .forms import CampUserCreationForm, TripDetailsForm
 from .models import *
 from .models import TripDetails
 from .utils import *
+
+
+import os
+import json
+
+
 
 
 # Create your views here.
@@ -285,3 +292,46 @@ def cancel_trip(request):
 def trip_detail(request, trip_id):
     trip = get_object_or_404(TripDetails, id=trip_id)
     return render(request, "users/trip_details.html", {"trip": trip})
+
+
+
+
+
+
+@csrf_exempt
+def chatbot_view(request):
+    if request.method == 'POST':
+        body = json.loads(request.body)
+        user_message = body.get('message', '')
+
+        # Construct smart prompt with instruction for follow-ups
+        prompt = f"""You are a helpful camping trip assistant. The user asked: "{user_message}" First, give a helpful, concise answer. Then, suggest 2-3 follow-up questions the user might ask next. List them clearly under the heading "Follow-up questions:", like this:
+                Follow-up questions:
+                - Question 1
+                - Question 2
+                - Question 3
+                """
+
+        try:
+            openai.api_key = settings.OPENAI_API_KEY
+            response = openai.ChatCompletion.create(
+                model="gpt-3.5-turbo",
+                messages=[{"role": "user", "content": prompt}]
+            )
+            full_reply = response.choices[0].message.content.strip()
+
+            # Extract follow-up questions using regex
+            followups = re.findall(r"- (.+)", full_reply)
+
+            # Clean + trim to under 100 chars, limit to 3
+            cleaned_followups = [
+                q.strip() for q in followups if len(q.strip()) <= 100
+            ][:3]
+
+            return JsonResponse({
+                'reply': full_reply,
+                'followups': cleaned_followups
+            })
+
+        except Exception as e:
+            return JsonResponse({'reply': f"Sorry, something went wrong: {str(e)}"})
