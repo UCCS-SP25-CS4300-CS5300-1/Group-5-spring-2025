@@ -31,7 +31,8 @@ urlpatterns = [
     path("login/", auth_views.LoginView.as_view(), name="login"),
     path("logout/", views.logoutUser, name="logout"),
     path("chatbot/", views.chatbot_view, name="chatbot"),
-
+    path('calendar/', views.calendar_view, name='current_calendar'),
+    path('calendar/<int:year>/<int:month>', views.calendar_view, name='traverse_calendar'),
 
 
 ]

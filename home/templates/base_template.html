@@ -55,7 +55,9 @@
           {% if user.is_authenticated %}
             <li><a class="dropdown-item" href="{% url 'logout' %}">Logout</a></li>
             <li><hr class="dropdown-divider"></li>
-            <li><a class="dropdown-item" href="{% url 'user_profile' %}">My Profile</a></li>
+            <li><a class="dropdown-item" href="{% url 'user_profile' %}" style="font-family: Nunito, sans-serif; font-weight: 400; font-style: normal;">My Profile</a></li>
+            <li><a class="dropdown-item" href="{% url 'current_calendar' %}" style="font-family: Nunito, sans-serif; font-weight: 400; font-style: normal;">My Calendar</a></li>
+
           {% else %}
             <li><a class="dropdown-item" href="{% url 'login' %}">Login</a></li>
             <li><hr class="dropdown-divider"></li>
