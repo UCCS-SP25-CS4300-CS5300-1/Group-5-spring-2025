@@ -438,8 +438,6 @@ def calendar_view(request, year=None, month=None):
 
     return render(request, 'users/calendar.html', context)
 
-
-=======
     # handle AJAX update
     if request.method == "POST" and request.headers.get("x-requested-with") == "XMLHttpRequest":
         items = request.POST.getlist("packing_items[]")
