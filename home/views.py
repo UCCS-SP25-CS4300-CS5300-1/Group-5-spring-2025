@@ -385,26 +385,6 @@ def chatbot_view(request):
 
 
 
-@login_required
-def trip_detail(request, trip_id):
-    trip = get_object_or_404(TripDetails, id=trip_id)
-
-    # handle AJAX update
-    if request.method == "POST" and request.headers.get("x-requested-with") == "XMLHttpRequest":
-        items = request.POST.getlist("packing_items[]")
-        cleaned = [i.strip() for i in items if i.strip()]
-        trip.packing_list = ",".join(cleaned)
-        trip.save()
-        # return the new list back to the browser
-        return JsonResponse({"items": cleaned})
-
-    # normal render on GET
-    items = [i.strip() for i in trip.packing_list.split(",") if i.strip()]
-    return render(request, "users/trip_details.html", {
-        "trip": trip,
-        "items": items,
-    })
-
 
 @login_required
 def trip_detail_pdf(request, trip_id):
