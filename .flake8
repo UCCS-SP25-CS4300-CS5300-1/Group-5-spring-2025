@@ -1,0 +1,22 @@
+[flake8]
+# Ignore anything we don't want it to waste time scanning
+exclude = 
+    .git,
+    __pycache__,
+    camp_mate_venv,
+    migrations,
+    db.sqlite3,
+    Dockerfile
+
+# Use a readable line length for Django templates/models
+max-line-length = 100
+
+# Show the source code of each error (optional)
+show-source = true
+
+# Error codes to ignore (optional, based on common Django noise)
+# E203: whitespace before ':'
+# W503: line break before binary operator
+ignore = 
+    E203, 
+    W503

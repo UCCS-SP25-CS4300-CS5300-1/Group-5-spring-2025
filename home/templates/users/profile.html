@@ -2,7 +2,6 @@
 {% load static %}
 {% block content %}
 
-
 {% block extra_css %}
 <style>
     body {
@@ -11,6 +10,38 @@
         background-attachment: fixed;
         background-repeat: no-repeat;
         background-position: center;
+    }
+
+    /* settings for the checkboxes */
+    .custom-checkbox-grid {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+    }
+
+    .custom-checkbox {
+        position: relative;
+        cursor: pointer;
+    }
+
+    .custom-checkbox input[type="checkbox"] {
+        display: none;
+    }
+
+    .checkbox-label {
+        padding: 10px 15px;
+        border: 2px solid #ccc;
+        border-radius: 5px;
+        transition: all 0.3s ease;
+        user-select: none;
+        background-color: #f8f9fa;
+        display: inline-block;
+    }
+
+    .custom-checkbox input[type="checkbox"]:checked + .checkbox-label {
+        background-color: #28a745;
+        color: white;
+        border-color: #28a745;
     }
 </style>
 {% endblock %}
@@ -39,17 +70,16 @@
                                 <a href="{% url 'facility_detail' campsite.f_id %}" class="btn btn-info">
                                     <i class="fas fa-info-circle"></i> View Details
                                 </a>
-                                <!-- Button to trigger the modal; pass the facility id via a data attribute -->
-                                <a href="#" 
-                                   class="btn btn-success lets-pack-btn" 
-                                   data-toggle="modal" 
-                                   data-target="#tripModal" 
+                                <a href="#"
+                                   class="btn btn-success lets-pack-btn"
+                                   data-toggle="modal"
+                                   data-target="#tripModal"
                                    data-facility-id="{{ campsite.id }}">
                                     <i class="fas fa-suitcase"></i> Let's Pack!
                                 </a>
                                 <form action="{% url 'delete_facility' campsite.f_id %}" method="POST" style="display: inline;">
                                     {% csrf_token %}
-                                    <button type="submit" class="btn btn-info">
+                                    <button type="submit" class="btn btn-danger">
                                         <i class="fas fa-trash-alt"></i> Delete 
                                     </button>
                                 </form>
@@ -65,28 +95,52 @@
         </div>
         <div class="card-footer text-center bg-light">
 
-
         <!-- Saved Trips -->
-        <h2 class="mb-0 text-center">Saved Trips</h2>
         <div class="row mt-4">
           {% for trip in trips %}
             <div class="col-md-6 col-lg-4 mb-4">
               <div class="card shadow-sm h-100">
                 <div class="card-body">
-                  <h5 class="card-title">{{ trip.facility.name }}</h5>
+                  <h5 class="card-title">
+                    {% for facility in trip.facility.all %}
+                      {{ facility.name }}{% if not forloop.last %}, {% endif %}
+                    {% endfor %}
+                  </h5>
                   <p class="card-text">
                     <strong>From:</strong> {{ trip.start_date }}<br>
                     <strong>To:</strong> {{ trip.end_date }}<br>
                     <strong>People:</strong> {{ trip.number_of_people }}
                   </p>
-                  <a href="{% url 'trip_detail' trip.id %}" class="btn btn-primary">View Trip</a>
-                  <form method="post" action="{% url 'cancel_trip' %}?trip_id={{ trip.id }}" style="display: inline;">
-                    {% csrf_token %}
-                    <button type="submit" class="btn btn-info">
-                        <i class="fas fa-trash-alt"></i> Delete 
+        
+                  <!-- Buttons for View Trip, Edit Trip, and Delete Trip -->
+                  <div class="d-flex justify-content-center gap-2 mt-3">
+                    <!-- View Trip Button -->
+                    <a href="{% url 'trip_detail' trip.id %}" class="btn btn-info">
+                      <i class="fas fa-info-circle"></i> View Trip
+                    </a>
+        
+                    <!-- Edit Trip Button -->
+                    <button 
+                      type="button" 
+                      class="btn btn-success edit-trip-btn"
+                      data-toggle="modal"
+                      data-target="#editTripModal"
+                      data-trip-id="{{ trip.id }}"
+                      data-start-date="{{ trip.start_date|date:'Y-m-d' }}"
+                      data-end-date="{{ trip.end_date|date:'Y-m-d' }}"
+                      data-number-of-people="{{ trip.number_of_people }}"
+                      data-selected-facilities='[{% for f in trip.facility.all %}{{ f.id }}{% if not forloop.last %},{% endif %}{% endfor %}]'>
+                      <i class="fas fa-edit"></i> Edit Trip
                     </button>
-                  </form>
-                
+        
+                    <!-- Delete Trip Form -->
+                    <form method="post" action="{% url 'cancel_trip' %}?trip_id={{ trip.id }}" style="display: inline;">
+                      {% csrf_token %}
+                      <button type="submit" class="btn btn-danger">
+                        <i class="fas fa-trash-alt"></i> Delete 
+                      </button>
+                    </form>
+                  </div>
                 </div>
               </div>
             </div>
@@ -95,38 +149,22 @@
           {% endfor %}
         </div>
 
+        <h2 class="mb-0">Preferences</h2>
+        <ul class="list-group" style="text-align: left;">
+            <li class="list-group-item"><strong>Include Campgrounds:</strong> {{ preferences.campground|yesno:"You Bet!,No Thanks" }}</li>
+            <li class="list-group-item"><strong>Include Ranger Stations:</strong> {{ preferences.rangerstation|yesno:"You Bet!,No Thanks" }}</li>
+            <li class="list-group-item"><strong>Include Hotels:</strong> {{ preferences.hotel|yesno:"You Bet!,No Thanks" }}</li>
+            <li class="list-group-item"><strong>Include Trails:</strong> {{ preferences.trail|yesno:"You Bet!,No Thanks" }}</li>
+            <li class="list-group-item"><strong>Include Facilities:</strong> {{ preferences.facility|yesno:"You Bet!,No Thanks" }}</li>
+            <li class="list-group-item"><strong>Include Reservable Sites:</strong> {{ preferences.reservable|yesno:"You Bet!,No Thanks" }}</li>
+        </ul>
 
+        <div class="mt-3">
+            <a href="{% url 'edit_preferences' %}" class="btn btn-warning">
+                <i class="fas fa-edit"></i> Edit Preferences
+            </a>
+        </div>
 
-
-
-            <h2 class="mb-0">Preferences</h2>
-            <ul class="list-group" style="text-align: left;">
-                <li class="list-group-item">
-                    <strong>Include Campgrounds:</strong> {{ preferences.campground|yesno:"You Bet!,No Thanks" }}
-                </li>
-                <li class="list-group-item">
-                    <strong>Include Ranger Stations:</strong> {{ preferences.rangerstation|yesno:"You Bet!,No Thanks" }}
-                </li>
-                <li class="list-group-item">
-                    <strong>Include Hotels:</strong> {{ preferences.hotel|yesno:"You Bet!,No Thanks" }}
-                </li>
-                <li class="list-group-item">
-                    <strong>Include Trails:</strong> {{ preferences.trail|yesno:"You Bet!,No Thanks" }}
-                </li>
-                <li class="list-group-item">
-                    <strong>Include Facilities:</strong> {{ preferences.facility|yesno:"You Bet!,No Thanks" }}
-                </li>
-                <li class="list-group-item">
-                    <strong>Include Reservable Sites:</strong> {{ preferences.reservable|yesno:"You Bet!,No Thanks" }}
-                </li>
-            </ul>
-        
-            <!-- Edit Preferences Button -->
-            <div class="mt-3">
-                <a href="{% url 'edit_preferences' %}" class="btn btn-warning">
-                    <i class="fas fa-edit"></i> Edit Preferences
-                </a>
-            </div>
         </div>
     </div>
 </div>
@@ -134,7 +172,6 @@
 <!-- Modal for Trip Details -->
 <div class="modal fade" id="tripModal" tabindex="-1" role="dialog" aria-labelledby="tripModalLabel" aria-hidden="true">
   <div class="modal-dialog" role="document">
-    <!-- Notice the form action is left empty; we will set it dynamically -->
     <form id="tripForm" method="POST" action="">
       {% csrf_token %}
       <div class="modal-content">
@@ -145,8 +182,22 @@
           </button>
         </div>
         <div class="modal-body">
-          <!-- Hidden input to store the facility id if needed -->
-          <input type="hidden" name="facility_id" id="facility_id" value="">
+          <!-- Hidden input to store selected IDs -->
+          <input type="hidden" name="facility_ids" id="facility_ids" value="">
+
+          <!-- Checkbox style facility selector -->
+          <div class="form-group">
+            <label>Select Your Favorite Facilities:</label>
+            <div class="custom-checkbox-grid" id="facility-checkboxes">
+              {% for campsite in user.userprofile.favorited_loc.all %}
+                <label class="custom-checkbox">
+                  <input type="checkbox" name="favorite_facilities" value="{{ campsite.id }}">
+                  <span class="checkbox-label">{{ campsite.name }}</span>
+                </label>
+              {% endfor %}
+            </div>
+          </div>
+
           <div class="form-group">
             <label for="start_date">Start Date:</label>
             <input type="date" class="form-control" name="start_date" id="start_date" required>
@@ -162,7 +213,6 @@
         </div>
         <div class="modal-footer">
           <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-          <!-- Submit button for the form -->
           <button type="submit" class="btn btn-primary">Plan Trip</button>
         </div>
       </div>
@@ -170,18 +220,124 @@
   </div>
 </div>
 
-<!-- JavaScript to dynamically update the modal form action -->
-<script>
-$(document).ready(function(){
-    $('.lets-pack-btn').click(function(){
-        var facilityId = $(this).data('facility-id');
-        // Set the hidden input value if needed
-        $('#facility_id').val(facilityId);
-        // Build the URL dynamically; adjust the URL structure if necessary
-        var formAction = '/trip/create/' + facilityId + '/';
-        $('#tripForm').attr('action', formAction);
-    });
-});
-</script>
+<!-- Edit Trip Modal -->
+<div class="modal fade" id="editTripModal" tabindex="-1" role="dialog" aria-labelledby="editTripModalLabel" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <form id="editTripForm" method="POST" action="">
+      {% csrf_token %}
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="editTripModalLabel">Edit Trip</h5>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div class="modal-body">
 
-{% endblock %}
+          <input type="hidden" name="trip_id" id="edit_trip_id" value="">
+
+          <div class="form-group">
+            <label>Select Facilities:</label>
+            <div class="custom-checkbox-grid" id="edit-facility-checkboxes">
+              {% for campsite in user.userprofile.favorited_loc.all %}
+                <label class="custom-checkbox">
+                  <input type="checkbox" name="edit_facilities" value="{{ campsite.id }}">
+                  <span class="checkbox-label">{{ campsite.name }}</span>
+                </label>
+              {% endfor %}
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="edit_start_date">Start Date:</label>
+            <input type="date" class="form-control" name="start_date" id="edit_start_date" required>
+          </div>
+          <div class="form-group">
+            <label for="edit_end_date">End Date:</label>
+            <input type="date" class="form-control" name="end_date" id="edit_end_date" required>
+          </div>
+          <div class="form-group">
+            <label for="edit_number_of_people">Number of People:</label>
+            <input type="number" class="form-control" name="number_of_people" id="edit_number_of_people" required min="1">
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-primary">Save Changes</button>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- JavaScript -->
+<script>
+  $(document).ready(function(){
+      $('.lets-pack-btn').click(function(){
+          var facilityId = $(this).data('facility-id');
+  
+          // Set the form action (optional – depends on your backend setup)
+          $('#tripForm').attr('action', '/trip/create/' + facilityId + '/');
+  
+          // Uncheck all checkboxes and make them visible again
+          $('#facility-checkboxes input[type="checkbox"]').prop('checked', false).closest('label').show();
+  
+          // Hide the selected facility so it can't be selected again
+          $('#facility-checkboxes input[value="' + facilityId + '"]').closest('label').hide();
+      });
+  
+      // Collect selected facilities on submit
+      $('#tripForm').on('submit', function() {
+          var selected = [];
+          $('#facility-checkboxes input[type="checkbox"]:checked').each(function() {
+              selected.push($(this).val());
+          });
+          $('#facility_ids').val(selected.join(','));
+      });
+  
+      // Edit Trip button clicked – populate modal
+      $('.edit-trip-btn').on('click', function () {
+          const tripId = $(this).data('trip-id');
+          const startDate = $(this).data('start-date');
+          const endDate = $(this).data('end-date');
+          const numberOfPeople = $(this).data('number-of-people');
+          const selectedFacilities = $(this).data('selected-facilities').toString().split(',');
+  
+          $('#edit_trip_id').val(tripId);
+          $('#edit_start_date').val(startDate);
+          $('#edit_end_date').val(endDate);
+          $('#edit_number_of_people').val(numberOfPeople);
+  
+          // Reset all checkboxes
+          $('#edit-facility-checkboxes input[type="checkbox"]').prop('checked', false);
+  
+          // Check previously selected facilities
+          selectedFacilities.forEach(function (id) {
+              $('#edit-facility-checkboxes input[value="' + id + '"]').prop('checked', true);
+          });
+  
+          // Set the form action dynamically
+          $('#editTripForm').attr('action', `/trip/edit/${tripId}/`);
+      });
+  
+      // On edit form submit, collect selected checkboxes into a hidden input
+      $('#editTripForm').on('submit', function () {
+          var selected = [];
+          $('#edit-facility-checkboxes input[type="checkbox"]:checked').each(function () {
+              selected.push($(this).val());
+          });
+  
+          // Remove any existing hidden input
+          $('#editTripForm input[name="edit_facilities"]').remove();
+  
+          // Add new hidden input with comma-separated values
+          $('<input>').attr({
+              type: 'hidden',
+              name: 'edit_facilities',
+              value: selected.join(',')
+          }).appendTo('#editTripForm');
+      });
+  });
+  </script>
+  
+  {% endblock %}

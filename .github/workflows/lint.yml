@@ -1,0 +1,47 @@
+name: Lint Code
+
+on:
+  push:
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest    #github "runner" - a virtual machine pre-configured with Ubuntu Linux OS that will execute jobs
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.12' # Our specific python version for this Django version
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install flake8-html
+
+      #Generate HTML report for flake8, don't fail for style violations, generate output as HTML report, save to folder
+      - name: Run Flake8
+        run: |
+          flake8 . --exit-zero --format=html --htmldir=flake8-report
+
+      #Generate text report for pylint, don't fail for style violations, save to file
+      - name: Run Pylint
+        run: |
+          find . -name "*.py" | xargs pylint --exit-zero > pylint-report.txt
+
+      #Upload the reports as artifacts
+      - name: Upload Flake8 Report
+        uses: actions/upload-artifact@v4
+        with:
+          name: flake8-report
+          path: flake8-report
+
+      - name: Upload Pylint Report
+        uses: actions/upload-artifact@v4
+        with:
+          name: pylint-report
+          path: pylint-report.txt
