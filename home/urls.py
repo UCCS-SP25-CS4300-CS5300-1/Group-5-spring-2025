@@ -32,13 +32,6 @@ urlpatterns = [
     path("logout/", views.logoutUser, name="logout"),
     path("chatbot/", views.chatbot_view, name="chatbot"),
 
-    #FOR USER
-    path('register/', views.register_view, name='register'),
-    path('profile/', views.user_profile,name='user_profile'),
-    path('login/', auth_views.LoginView.as_view(), name='login'),
-    path('logout/', views.logoutUser, name='logout'),
-    path('calendar/', views.calendar_view, name='current_calendar'),
-    path('calendar/<int:year>/<int:month>', views.calendar_view, name='traverse_calendar'),
 
 
 ]
