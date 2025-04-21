@@ -55,8 +55,10 @@ class TripDetailTemplateTests(TestCase):
         self.assertIn(self.facility.name, h2.text)
 
         # Format the dates as they appear in the rendered template (e.g., "June 1, 2025")
-        formatted_start = self.trip.start_date.strftime("%B %-d, %Y")  # macOS/Linux
-        formatted_end = self.trip.end_date.strftime("%B %-d, %Y")  # macOS/Linux
+        formatted_start = self.trip.start_date.strftime("%B %d, %Y").replace(" 0", " ") # macOS/Linux
+        formatted_end = self.trip.end_date.strftime("%B %d, %Y").replace(" 0", " ") # macOS/Linux
+
+
 
         # If you're on Windows, use this instead:
         # formatted_start = self.trip.start_date.strftime("%B %#d, %Y")
