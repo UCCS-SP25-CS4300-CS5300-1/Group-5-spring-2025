@@ -192,12 +192,10 @@ class MyHTMLCalendar(HTMLCalendar):
         self.year = year
         self.month = month
 
-        print(self.trips)
     '''
     Return a string representing a single day. if day is 0, return a string representing empty day (for days bordering or trailing months) 
     Weekday parameter is unused. 
     '''
-
     def formatday(self, day, weekday):
         
         # if day is NOT a bordering day (day of past or next month)
