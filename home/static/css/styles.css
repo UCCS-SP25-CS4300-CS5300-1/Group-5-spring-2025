@@ -207,7 +207,7 @@ th.month {
     font-style: normal;
     font-size: 30pt;
     color: white;
-    background-color: #407d64;
+    background-color: #105c4a;
 }
 
 /* this is for the calendar's second row that displays the days of the week */
@@ -219,17 +219,25 @@ th.month {
     font-style: normal;
     font-size: 20pt;
     color: white;
-    background-color: #407d64 !important;
+    background-color: #105c4a !important;
 }
 /* this is for the calendar table's cell size format */
 td {
     font-family: "Nunito", sans-serif;
     font-weight: 500;
     font-style: normal;
+    font-size: 14pt;
     width:150px !important;
-    height:75px !important;
+    height:100px !important;
+    color: #105c4a;
 }
 /* this is for days that user trips are applicable */
 .day-trip {
-    background-color: #ff930e !important;
+    background-color: lightgoldenrodyellow !important;
 }
+
+/* this is for bordering days */
+.table-secondary {
+    background-color: #407d64 !important;
+}
+

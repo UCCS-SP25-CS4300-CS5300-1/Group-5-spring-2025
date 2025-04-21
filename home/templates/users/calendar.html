@@ -16,9 +16,9 @@
 {% endblock %}
 
 <div class="d-flex justify-content-between align-items-center mb-3">
-    <a class="btn btn-outline-primary" href="{% url 'traverse_calendar' prevyear prevmonth %}">&laquo; Previous</a>
-    <h4>Your Calendar</h4>
-    <a class="btn btn-outline-primary" href="{% url 'traverse_calendar' nextyear nextmonth %}">Next &raquo;</a>
+    <a class="btn btn-primary" href="{% url 'traverse_calendar' prevyear prevmonth %}">&laquo; Previous</a>
+    <h1 style="color:#105c4a;">When's Your Next Trip?</h1>
+    <a class="btn btn-primary" href="{% url 'traverse_calendar' nextyear nextmonth %}">Next &raquo;</a>
 </div>
 
 <div class="table-responsive">

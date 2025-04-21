@@ -4,6 +4,8 @@ from .models import *
 
 from calendar import HTMLCalendar
 from datetime import date
+from django.urls import reverse
+from django.templatetags.static import static
 
 
 # this is my api key for RIDB 
@@ -189,23 +191,29 @@ class MyHTMLCalendar(HTMLCalendar):
         self.trips = trips
         self.year = year
         self.month = month
+
+        print(self.trips)
     '''
     Return a string representing a single day. if day is 0, return a string representing empty day (for days bordering or trailing months) 
-    Weekday paramter is unused. 
+    Weekday parameter is unused. 
     '''
+
     def formatday(self, day, weekday):
-        # if day is a bordering day (day of past or next month)
-        if day == 0:
-            # it will be greyed out
-            return '<td class="table-secondary"></td>' 
         
-        current_date = date(self.year, self.month, day)
-        trip_days = [trip for trip in self.trips if trip.start_date <= current_date <= trip.end_date]
-        # if trip occurs within the current calendar
-        if trip_days:
-            # special format! 
-            return f'<td class="day-trip table-light text-center">{day}</td>'
-        return f'<td class="table-light text-center">{day}</td>'
+        # if day is NOT a bordering day (day of past or next month)
+        if day != 0:
+            current_date = date(self.year, self.month, day)
+            # if trip occurs on weekday, format special w/ link to trip details 
+            for trip in self.trips:
+                if trip.start_date <= current_date <= trip.end_date:
+                    # have to do these
+                    trip_url = reverse('trip_detail', args=[trip.id])
+                    img_url = static('images/cm.png')
+                    return f'<td class="day-trip table-light text-center">{day} <br> <a href="{trip_url}"><img src="{img_url}"  width="60" height="60"></a> </td>'
+            # normal weekday, no trip
+            return f'<td class="table-light text-center">{day}</td>'
+        # bordering day 
+        return '<td class="table-secondary"></td>' 
 
     '''
     Return a string representing a single week with no newline. uses formatday func to do this, iterating through all days in a week
