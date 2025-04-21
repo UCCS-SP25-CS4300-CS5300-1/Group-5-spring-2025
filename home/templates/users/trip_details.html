@@ -71,10 +71,20 @@
 <h3>Packing List</h3>
 <div class="inbox" id="packingListContainer"></div>
 <br>
-<form method="post" action="{% url 'cancel_trip' %}?trip_id={{ trip.id }}">
-  {% csrf_token %}
-  <button type="submit" class="btn btn-primary">Delete</button>
-</form>
+<div style="display: flex; gap: 10px; margin-top: 20px;">
+  <a href="{% url 'user_profile' %}" class="btn btn-primary" style="text-decoration: none;">
+    Back
+  </a>
+  <form method="post" action="{% url 'cancel_trip' %}?trip_id={{ trip.id }}">
+    {% csrf_token %}
+    <button type="submit" class="btn btn-primary">Delete</button>
+  </form>
+
+  <a href="{% url 'trip_detail_pdf' trip.id %}" class="btn btn-primary" target="_blank">
+    Download as PDF
+  </a>
+</div>
+
 
 
 <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
