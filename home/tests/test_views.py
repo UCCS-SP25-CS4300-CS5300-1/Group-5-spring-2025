@@ -1,5 +1,5 @@
 from datetime import date
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock, patch, Mock
 
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import User
@@ -7,6 +7,9 @@ from django.test import Client, TestCase
 from django.urls import reverse
 
 from home.models import Facility, TripDetails, UserProfile
+
+from django.http import JsonResponse
+import json
 
 
 class ViewTests(TestCase):
@@ -328,3 +331,44 @@ class TripViewsTest(TestCase):
         self.assertEqual(str(trip.end_date), new_end)
         self.assertEqual(trip.number_of_people, new_people)
         self.assertIn(new_facility, trip.facility.all())
+
+
+class ChatbotViewTests(TestCase):
+    def setUp(self):
+        self.client = Client()
+        self.url = reverse('chatbot')  # Make sure your URL name is 'chatbot'
+
+    @patch("openai.ChatCompletion.create")
+    def test_chatbot_view_successful_post(self, mock_openai_create):
+        mock_message = Mock()
+        mock_message.content = """Here are some helpful tips...
+
+        Follow-up questions:
+        - How do I pack for a weekend trip?
+        - What should I eat while camping?
+        - How do I stay warm at night?
+        """
+
+        mock_response = Mock()
+        mock_response.choices = [Mock(message=mock_message)]
+
+        mock_openai_create.return_value = mock_response
+
+        data = {"message": "What are tips for first-time campers?"}
+        response = self.client.post(
+            self.url,
+            data=json.dumps(data),
+            content_type='application/json'
+        )
+
+        self.assertEqual(response.status_code, 200)
+        content = response.json()
+        self.assertIn("reply", content)
+        self.assertIn("followups", content)
+        self.assertEqual(len(content["followups"]), 3)
+
+    def test_chatbot_view_rejects_non_post(self):
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, 200)
+        content = response.json()
+        self.assertIn("reply", content)
