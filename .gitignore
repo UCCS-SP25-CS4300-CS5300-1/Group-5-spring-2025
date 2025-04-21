@@ -1,6 +1,9 @@
 ## Local dev ignores
 local/
 
+## Ignore `staticfiles` folder generation from production
+staticfiles/
+
 ## Odd new `cache` ignore?
 
 *cache*
