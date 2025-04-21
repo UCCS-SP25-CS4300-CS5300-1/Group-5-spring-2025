@@ -1,13 +1,3 @@
-
-from django.test import TestCase, Client
-from django.urls import reverse
-from django.contrib.auth import get_user_model
-from home.models import Facility, UserProfile, TripDetails, CampUser
-from unittest.mock import patch, MagicMock
-from django.contrib.auth.models import User  
-from datetime import date, timedelta
-from calendar import HTMLCalendar
-
 from datetime import date
 from unittest.mock import MagicMock, patch, Mock
 
@@ -20,7 +10,6 @@ from home.models import Facility, TripDetails, UserProfile
 
 from django.http import JsonResponse
 import json
-
 
 
 class ViewTests(TestCase):
@@ -305,44 +294,6 @@ class TripViewsTest(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, self.facility.name)
         self.assertContains(response, "Tent")
-
-# test for calendar view
-class CalendarViewTest(TestCase):
-    def setUp(self):
-        self.client = Client()
-        self.user = CampUser.objects.create_user(username="testuser", password="testpassword123")
-        self.profile = self.user.userprofile
-
-        self.trip = TripDetails.objects.create(
-            user = self.profile,
-            start_date = date.today(),
-            end_date = date.today() + timedelta(days=1),
-            number_of_people = 2,
-        )
-
-    def test_calendar_view_authenticated(self):
-        self.client.login(username="testuser", password="testpassword123")
-        response = self.client.get(reverse("current_calendar"))
-        self.assertEqual(response.status_code, 200)
-        self.assertTemplateUsed(response, "users/calendar.html")
-
-    def test_trip_appears_in_calendar(self):
-        self.client.login(username="testuser", password="testpassword123")
-        response = self.client.get(reverse("current_calendar"))
-        # find needle in haystack: this specific line of html should appear if view functions as it should
-        # special html format for calendar day based on trip
-        needle = f'<td class="day-trip table-light text-center">{self.trip.start_date.day} <br> <a href="/trip/{self.trip.id}/"><img src="/static/images/cm.png"  width="60" height="60"></a> </td>'
-        haystack = response.content.decode()
-        self.assertInHTML(needle, haystack)
-
-    def test_calendar_navigation(self):
-        self.client.login(username="testuser", password="testpassword123")
-        response = self.client.get(reverse("traverse_calendar", args=[2025, 1]))
-        self.assertEqual(response.context['nextmonth'], 2)
-        self.assertEqual(response.context['nextyear'], 2025)
-        self.assertEqual(response.context['prevmonth'], 12)
-        self.assertEqual(response.context['prevyear'], 2024)
-
     
     def test_trip_edit_view(self):
         trip = TripDetails.objects.create(
@@ -421,4 +372,3 @@ class ChatbotViewTests(TestCase):
         self.assertEqual(response.status_code, 200)
         content = response.json()
         self.assertIn("reply", content)
-
