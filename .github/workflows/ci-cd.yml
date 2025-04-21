@@ -158,11 +158,12 @@ jobs:
         run: |
           echo "Deploying application to AWS..."
           echo "$PRIVATE_KEY" > github-ec2.pem && chmod 600 github-ec2.pem
-          ssh -o StrictHostKeyChecking=no -i github-ec2.pem ${USER}@${HOST
-          ls -al
+          ssh -o StrictHostKeyChecking=no -i github-ec2.pem ${USER}@${HOST} << 'EOF'
+          cd app/docker/
           echo "Close currently running docker instances"
           docker compose down
           echo "Update docker image for campmate"
           docker compose pull
           echo "Reinitialize docker swarm in detached mode"
           docker compose up -d
+          EOF
