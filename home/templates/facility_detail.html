@@ -16,7 +16,7 @@
                     <ul class="list-group list-group-flush">
                         <li class="list-group-item"><i class="fas fa-map-marker-alt"></i> <strong>Location:</strong> {{ facility_address }}</li>
                         <li class="list-group-item"><i class="fas fa-campground"></i> <strong>Type:</strong> {{ campsite.FacilityTypeDescription }}</li>
-                        <li class="list-group-item"><i class="fas fa-info-circle"></i> <strong>Description:</strong> {{ campsite.FacilityDescription|default:"N/A" }}</li>
+                        <li class="list-group-item"><i class="fas fa-info-circle"></i> <strong>Description:</strong> {{ campsite.FacilityDescription|default:"N/A"|safe }}</li>
                     </ul>
                 </div>
                 <div class="col-md-6">

@@ -1,4 +1,16 @@
+
 from datetime import datetime
+import requests
+
+
+from home.utils import (
+    return_facility_detail, 
+    return_facility_address, 
+    return_facility_url, 
+    search_facilities, 
+    fetch_weather, 
+    check_hazards
+)
 
 
 import openai
@@ -22,14 +34,18 @@ from home.models import Facility
 from home.utils import return_facility_detail, search_facilities
 import re
 from .forms import *
-from .forms import CampUserCreationForm, TripDetailsForm
+
 from .models import *
-from .models import TripDetails
+
 from .utils import *
 
 
 import os
 import json
+
+
+# Test, for calendar feature
+import calendar
 
 
 
@@ -105,22 +121,27 @@ def save_facility(request, facility_id):
     url = return_facility_url(facility_id)
     location = return_facility_address(facility_id)
 
-    # create the saved facility (or get it if it already exists in user profile)
-    facility, created = Facility.objects.get_or_create(
-        f_id=facility_id,
-        defaults={
-            "name": name,
-            "location": location,
-            "type": type,
-            "accessibility_txt": acessibility_txt,
-            "ada_accessibility": ada,
-            "phone": phone,
-            "email": email,
-            "description": desc,
-            "reservable": reservable,
-            "url": url,
-        },
-    )
+
+    # create the saved facility (or get it if it already exists in user profile) [Updated to work long & lat for weather]
+    facility, _ = Facility.objects.update_or_create(
+    f_id=facility_id,
+    defaults={
+        "name": name,
+        "location": location,
+        "type": type,
+        "accessibility_txt": acessibility_txt,
+        "ada_accessibility": ada,
+        "phone": phone,
+        "email": email,
+        "description": desc,
+        "reservable": reservable,
+        "url": url,
+        "latitude": testfacility.get("FacilityLatitude"),
+        "longitude": testfacility.get("FacilityLongitude"),
+    }
+)
+    
+    
 
     # add this facility to user's favorited_loc attribute
     # (but really this is an attribute of UserProfile which is an attribute of user... have
@@ -128,6 +149,8 @@ def save_facility(request, facility_id):
     user.userprofile.favorited_loc.add(facility)
     # redirects to user profile that shows all favorited campsites
     return redirect("user_profile")
+
+
 
 
 # this gets the user creation form for CampUser - uses the form created in forms.py
@@ -228,14 +251,13 @@ def create_trip_async(request, facility_id):
             start_date = trip_data['start_date']
             end_date = trip_data['end_date']
             number_of_people = trip_data['number_of_people']
-            
-            facility_names = ", ".join([facility.name for facility in selected_facility])
 
+            facility_names = ", ".join([facility.name for facility in selected_facility])
             prompt = (
                 f"Generate a packing list for {number_of_people} people camping at {facility_names} "
                 f"from {start_date} to {end_date}. Focus on essentials. Consider the weather at this time and location. "
                 f"Give response in a comma separated list"
-            )
+            ) 
 
             try:
                 openai.api_key = settings.OPENAI_API_KEY
@@ -307,6 +329,7 @@ def cancel_trip(request):
         if request.session.get('trip_preview_id') == int(trip_id):
             del request.session['trip_preview_id']
     return redirect('user_profile')
+
 
 @login_required
 def edit_trip(request, trip_id):
@@ -389,20 +412,26 @@ def chatbot_view(request):
 def trip_detail(request, trip_id):
     trip = get_object_or_404(TripDetails, id=trip_id)
 
-    # handle AJAX update
-    if request.method == "POST" and request.headers.get("x-requested-with") == "XMLHttpRequest":
-        items = request.POST.getlist("packing_items[]")
-        cleaned = [i.strip() for i in items if i.strip()]
-        trip.packing_list = ",".join(cleaned)
-        trip.save()
-        # return the new list back to the browser
-        return JsonResponse({"items": cleaned})
+    facility = trip.facility.first()
+    weather_forecast = []
+    hazards_detected = False
 
-    # normal render on GET
-    items = [i.strip() for i in trip.packing_list.split(",") if i.strip()]
-    return render(request, "users/trip_details.html", {
-        "trip": trip,
-        "items": items,
+    if facility and facility.latitude and facility.longitude:
+        lat = facility.latitude
+        lon = facility.longitude
+        
+        start_date = trip.start_date.strftime('%Y-%m-%d')
+        end_date = trip.end_date.strftime('%Y-%m-%d')
+
+        forecast = fetch_weather(lat, lon, start_date, end_date)
+        hazards_found = check_hazards(forecast)
+        hazards_detected = bool(hazards_found)
+        weather_forecast = forecast
+
+    return render(request, 'users/trip_details.html', {
+        'trip': trip,
+        'weather_forecast': weather_forecast,
+        'hazards_detected': hazards_detected
     })
 
 
@@ -424,3 +453,51 @@ def trip_detail_pdf(request, trip_id):
     response = HttpResponse(pdf_bytes, content_type="application/pdf")
     response["Content-Disposition"] = f'attachment; filename="trip_{trip.id}.pdf"'
     return response
+
+
+# generate calendar 
+# year and month are optional. this is bc user can navigate to next month if desired
+@login_required
+def calendar_view(request, year=None, month=None):
+    now = datetime.now()
+    year = year or now.year
+    month = month or now.month
+    # ah, a really silly way to resolve index error if user enters calendar/<year>/<some#waymorethan12> in searchbar
+    month = month % 12
+    trips = TripDetails.objects.filter(user = request.user.userprofile)
+
+    # very naive logic for grabbing the next month and corresponding year 
+    # user can only traverse through one month at a time, backward or forward.
+    if month == 12:
+        nextmonth = 1
+        nextyear = year + 1
+    else:
+        nextmonth = month + 1
+        nextyear = year
+
+    if month == 1:
+        prevmonth = 12
+        prevyear = year - 1
+    else:
+        prevmonth = month - 1
+        prevyear = year
+
+    # create calendar object
+    # calendar object code can be viewed in utils.py
+    cal_obj = MyHTMLCalendar(trips, year, month)
+    # from calendar object, create html calendar for template
+    html_cal = cal_obj.formatmonth()
+
+    context = {
+        'calendar': html_cal,
+        'month': month,
+        'year': year,
+        'nextyear': nextyear,
+        'nextmonth': nextmonth,
+        'prevyear': prevyear,
+        'prevmonth': prevmonth
+    }
+
+    return render(request, 'users/calendar.html', context)
+
+
