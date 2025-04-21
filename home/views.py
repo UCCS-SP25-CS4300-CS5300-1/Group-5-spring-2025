@@ -216,12 +216,12 @@ def create_trip_async(request, facility_id):
             start_date = trip_data['start_date']
             end_date = trip_data['end_date']
             number_of_people = trip_data['number_of_people']
-            
-            # Generate packing list using OpenAI
+            facility_names = ", ".join([facility.name for facility in selected_facility])
             prompt = (
-                f"Generate a packing list for {number_of_people} people camping at {", ".join([facility.name for facility in selected_facility])} "
-                f"from {start_date} to {end_date}. Focus on essentials. Consider the weather at this time and location. Give response in a comma separated list"
-            )
+                f"Generate a packing list for {number_of_people} people camping at {facility_names} "
+                f"from {start_date} to {end_date}. Focus on essentials. Consider the weather at this time and location. "
+                f"Give response in a comma separated list"
+            ) 
             try:
                 openai.api_key = settings.OPENAI_API_KEY
                 ai_response = openai.ChatCompletion.create(
