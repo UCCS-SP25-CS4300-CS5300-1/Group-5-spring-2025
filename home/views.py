@@ -1,28 +1,27 @@
-from django.shortcuts import render, redirect
 from .utils import *
 from .models import *
-
-
-#FOR USER STUFF
-from django.contrib.auth.forms import UserCreationForm
-from home.utils import return_facility_detail
-from django.contrib.auth.decorators import login_required
-from .forms import CampUserCreationForm
-from home.models import Facility
-from home.utils import return_facility_detail, search_facilities
-from django.contrib.auth import logout
 from .forms import *
-import requests
-
-
-#FOR AI STUFF
-import openai
+from django.shortcuts import render, redirect, get_object_or_404
+from django.contrib.auth import logout
+from django.contrib.auth.forms import UserCreationForm
+from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
 from django.utils.decorators import method_decorator
-from .models import TripDetails
 from datetime import datetime
-from .forms import TripDetailsForm
-from django.shortcuts import render, get_object_or_404
+import requests
+import openai
+
+from .forms import CampUserCreationForm, TripDetailsForm, UserPreferenceForm
+from .models import Facility, TripDetails, UserProfile, UserPreferences, CampUser
+from home.utils import (
+    return_facility_detail, 
+    return_facility_address, 
+    return_facility_url, 
+    search_facilities, 
+    fetch_weather, 
+    check_hazards
+)
+
 
 
 
@@ -86,24 +85,29 @@ def save_facility(request, facility_id):
     url = return_facility_url(facility_id)
     location = return_facility_address(facility_id)
 
-    # create the saved facility (or get it if it already exists in user profile)
-    facility, created = Facility.objects.get_or_create(
 
-        f_id=facility_id,
-        defaults={
-            "name": name,
-            "location": location,
-            "type": type,
-            "accessibility_txt": acessibility_txt,
-            "ada_accessibility": ada,
-            "phone": phone,
-            "email": email,
-            "description": desc,
-            "reservable": reservable,
-            "url": url
-            
-        }
-    )
+    print("Latitude from API:", testfacility.get("Latitude"))
+    print("Longitude from API:", testfacility.get("Longitude"))
+    print("Saving facility:", name)
+    # create the saved facility (or get it if it already exists in user profile) [Updated to work long & lat for weather]
+    facility, _ = Facility.objects.update_or_create(
+    f_id=facility_id,
+    defaults={
+        "name": name,
+        "location": location,
+        "type": type,
+        "accessibility_txt": acessibility_txt,
+        "ada_accessibility": ada,
+        "phone": phone,
+        "email": email,
+        "description": desc,
+        "reservable": reservable,
+        "url": url,
+        "latitude": testfacility.get("FacilityLatitude"),
+        "longitude": testfacility.get("FacilityLongitude"),
+    }
+)
+    
     
     # add this facility to user's favorited_loc attribute
     # (but really this is an attribute of UserProfile which is an attribute of user... have 
@@ -111,6 +115,8 @@ def save_facility(request, facility_id):
     user.userprofile.favorited_loc.add(facility)
     # redirects to user profile that shows all favorited campsites 
     return redirect("user_profile")
+
+
 
 
 # this gets the user creation form for CampUser - uses the form created in forms.py
@@ -291,72 +297,31 @@ def cancel_trip(request):
             del request.session['trip_preview_id']
     return redirect('user_profile')
 
+
 @login_required
-def edit_trip(request):
-
-
+def edit_trip(request, trip_id):
+    # TODO: Add editing logic
     return redirect('user_profile')
-
-import requests
 
 @login_required
 def trip_detail(request, trip_id):
     trip = get_object_or_404(TripDetails, id=trip_id)
 
-    # Assume one facility per trip for simplicity (or average lat/lon for multiple)
     facility = trip.facility.first()
     weather_forecast = []
     hazards_detected = False
 
-    if facility:
+    if facility and facility.latitude and facility.longitude:
         lat = facility.latitude
         lon = facility.longitude
-
-        # Format trip dates
+        
         start_date = trip.start_date.strftime('%Y-%m-%d')
         end_date = trip.end_date.strftime('%Y-%m-%d')
 
-        # Request weather forecast
-        url = (
-            f"https://api.open-meteo.com/v1/forecast"
-            f"?latitude={lat}&longitude={lon}"
-            f"&start_date={start_date}&end_date={end_date}"
-            f"&daily=temperature_2m_max,temperature_2m_min,weathercode"
-            f"&timezone=auto"
-        )
-        response = requests.get(url)
-
-        if response.status_code == 200:
-            data = response.json()
-            daily = zip(
-                data['daily']['time'],
-                data['daily']['temperature_2m_max'],
-                data['daily']['temperature_2m_min'],
-                data['daily']['weathercode']
-            )
-
-            # Map weather codes to readable conditions
-            code_map = {
-                61: 'Moderate rainfall', 63: 'Heavy rain', 65: 'Very heavy rain',
-                71: 'Moderate snowfall', 73: 'Heavy snowfall', 95: 'Thunderstorm',
-                96: 'Thunderstorm w/ slight hail', 99: 'Thunderstorm w/ heavy hail',
-                85: 'Heavy snow showers', 81: 'Violent rain showers',
-                57: 'Dense freezing drizzle', 66: 'Heavy freezing rain',
-                # Add others if needed
-            }
-
-            for date, tmax, tmin, code in daily:
-                condition = code_map.get(code, "Unknown")
-                weather_forecast.append({
-                    'date': date,
-                    'temp_max': round(tmax * 9/5 + 32),  # convert to F
-                    'temp_min': round(tmin * 9/5 + 32),
-                    'condition': condition
-                })
-
-            # Check for hazards
-            hazards_found = check_hazards(weather_forecast)
-            hazards_detected = len(hazards_found) > 0
+        forecast = fetch_weather(lat, lon, start_date, end_date)
+        hazards_found = check_hazards(forecast)
+        hazards_detected = bool(hazards_found)
+        weather_forecast = forecast
 
     return render(request, 'users/trip_details.html', {
         'trip': trip,

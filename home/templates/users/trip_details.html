@@ -96,29 +96,33 @@
 </div>
 {% endif %}
 
-{# Weather Forecast Display #}
-{% if weather_forecast %}
+
 <h3>Weather Forecast</h3>
-<table class="forecast-table">
-  <thead>
-    <tr>
-      <th>Date</th>
-      <th>High (°F)</th>
-      <th>Low (°F)</th>
-      <th>Condition</th>
-    </tr>
-  </thead>
-  <tbody>
-    {% for day in weather_forecast %}
-    <tr>
-      <td>{{ day.date }}</td>
-      <td>{{ day.temp_max }}</td>
-      <td>{{ day.temp_min }}</td>
-      <td>{{ day.condition }}</td>
-    </tr>
-    {% endfor %}
-  </tbody>
-</table>
+{% if weather_forecast %}
+  <table class="forecast-table">
+    <thead>
+      <tr>
+        <th>Date</th>
+        <th>High (°F)</th>
+        <th>Low (°F)</th>
+        <th>Condition</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for day in weather_forecast %}
+      <tr>
+        <td>{{ day.date }}</td>
+        <td>{{ day.temp_max }}</td>
+        <td>{{ day.temp_min }}</td>
+        <td>{{ day.condition }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+{% else %}
+  <p style="font-style: italic; color: #555;">
+    Weather forecast is currently unavailable for this trip.
+  </p>
 {% endif %}
 
 <h3>Packing List</h3>
