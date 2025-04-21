@@ -30,6 +30,14 @@ class UserPreferenceForm(ModelForm):
 
 
 class TripDetailsForm(forms.ModelForm):
+
+    facility = forms.ModelMultipleChoiceField(
+        queryset=Facility.objects.all(),
+        widget=forms.CheckboxSelectMultiple,
+        required=False,
+        label="Locations"
+    )
+
     number_of_people = forms.TypedChoiceField(
         choices=[(i, str(i)) for i in range(1, 11)],  # Options 1 through 10
         coerce=int,  # This converts the submitted value to an integer

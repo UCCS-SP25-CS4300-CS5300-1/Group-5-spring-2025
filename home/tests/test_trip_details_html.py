@@ -30,12 +30,12 @@ class TripDetailTemplateTests(TestCase):
 
         self.trip = TripDetails.objects.create(
             user=self.user_profile,
-            facility=self.facility,
             start_date=date(2025, 6, 1),
             end_date=date(2025, 6, 5),
             number_of_people=3,
             packing_list="Tent, Sleeping Bag, Lantern",
         )
+        self.trip.facility.set([self.facility])
 
         self.client.login(username="testuser", password="password123")
 

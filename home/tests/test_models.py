@@ -156,14 +156,15 @@ class TripDetailsModelTests(TestCase):
         """Test basic creation of a TripDetails instance"""
         trip = TripDetails.objects.create(
             user=self.profile,
-            facility=self.facility,
             start_date=date(2025, 6, 1),
             end_date=date(2025, 6, 3),
             number_of_people=2,
             packing_list="Tent, Sleeping Bag, Flashlight",
         )
+        trip.facility.set([self.facility])
+
         self.assertEqual(trip.user, self.profile)
-        self.assertEqual(trip.facility, self.facility)
+        self.assertIn(self.facility, trip.facility.all())
         self.assertEqual(trip.number_of_people, 2)
         self.assertEqual(trip.packing_list, "Tent, Sleeping Bag, Flashlight")
 
@@ -171,41 +172,45 @@ class TripDetailsModelTests(TestCase):
         """Test string representation of TripDetails"""
         trip = TripDetails.objects.create(
             user=self.profile,
-            facility=self.facility,
             start_date=date(2025, 7, 1),
             end_date=date(2025, 7, 2),
         )
-        expected = (
-            f"{self.user.username}'s Trip to {self.facility.name} on {trip.start_date}"
-        )
+
+        trip.facility.set([self.facility])
+
+        expected = f"{self.user.username}'s Trip to {self.facility.name} on {trip.start_date}"
+
         self.assertEqual(str(trip), expected)
 
     def test_default_number_of_people(self):
         """Test that number_of_people defaults to 1"""
         trip = TripDetails.objects.create(
             user=self.profile,
-            facility=self.facility,
             start_date=date(2025, 8, 1),
             end_date=date(2025, 8, 3),
         )
+        trip.facility.set([self.facility])
+
         self.assertEqual(trip.number_of_people, 1)
 
     def test_trip_with_null_facility(self):
         """Test TripDetails can be created without a facility (nullable)"""
         trip = TripDetails.objects.create(
             user=self.profile,
-            facility=None,
             start_date=date(2025, 9, 10),
             end_date=date(2025, 9, 15),
         )
-        self.assertIsNone(trip.facility)
+        trip.facility.clear()
+        self.assertEqual(trip.facility.count(), 0)
 
     def test_missing_required_fields(self):
         """Test that required fields raise errors if missing"""
         with self.assertRaises(Exception):
             TripDetails.objects.create(
                 user=self.profile,
-                facility=self.facility,
                 start_date=None,  # Required field
                 end_date=date(2025, 10, 1),
             )
+
+            self.trip.facility.set([self.facility])
+

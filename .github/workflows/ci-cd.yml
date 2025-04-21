@@ -1,15 +1,25 @@
-
 name: CI/CD Pipeline
+run-name: CI/CD pipeline executed by @${{ github.actor }}
 
 on:
   push:
-    branches: [ main ] ## will change to main once confirmed functional
+    branches:
+      - '*'
   pull_request:
-    branches: [ main ]
+    ## Ensure that CI pipeline isnt doubly ran during a PR when someone commits during
+    ### an active PR
+    types: 
+      - opened
+      - reopened
+    branches:
+      - main ## Execute all jobs when pull request to main or dev
+      - 'dev*' ## Ensure PR's into dev branch execute all jobs
 
 jobs:
   test-coverage:
     name: PyTest & Coverage Suite
+    ## Ensure test coverage is executed against all push requests to any branch
+    if: github.event_name == 'push'
     ## Courtesy Abi
     runs-on: ubuntu-latest
     steps:
@@ -26,6 +36,9 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
+      - name: Configure Environment for Staticfiles
+        run: python manage.py collectstatic --no-input
+
       - name: Run Tests with Coverage
         run: |
           coverage run --source=home manage.py test home.tests
@@ -33,7 +46,7 @@ jobs:
           coverage xml
         env:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
-      ## NOTE: unsure where coverage report/artifact is stored currently
+
       - name: Upload Coverage Report as Artifact  
         uses: actions/upload-artifact@v4
         with:
@@ -56,16 +69,17 @@ jobs:
 
         ## Better python tool management
         ### https://docs.astral.sh/uv/
-      - name: Install uv
+      - name: Install uv Module
         run: pip install uv
 
         ## Dynamically update and display changes to requirements.txt based on source code
         ### displays changes from prior to current in the pipeline logs
-      - name: Generate requirements.txt from source
+      - name: Generate `requirements.txt` from Source w/ pipreqs
         run: |
           uvx pipreqs --savepath pipreqs.txt .
           bash scripts/pipreqs.sh pipreqs.txt
-          diff -u requirements.txt pipreqs.txt || echo "Dependencies updated"
+          echo "Consider updating requirements.txt: " 
+          uniq pipreqs.txt | tr '[:upper:]' '[:lower:]'
 
   security-audit:
     name: Security Audits and Testing
@@ -82,8 +96,9 @@ jobs:
 
       - name: Install Dependencies
         run: |
-          pip install -r requirements.txt
           pip install uv
+          pip install -r requirements.txt
+          
 
       - name: Run Bandit Security Scan
         run: uvx bandit -r .
@@ -91,42 +106,64 @@ jobs:
         ## For now, ensure pipeline continues. In future cases,
         ### sec audits should be addressed prior to deployment
 
-      # - name: Upload Coverage Report as Artifact  
-      #   uses: actions/upload-artifact@v4
-      #   with:
-      #     name: coverage-report
-      #     path: coverage.xml
-      #     if-no-files-found: ignore  
+      - name: Upload Bandit Security Scan as Artifact  
+        uses: actions/upload-artifact@v4
+        with:
+          name: bandit-report
+          path: bandit.xml
+          if-no-files-found: ignore
         
       # - name: Run Safety Check for Vulnerable Dependencies
-      #   run: uvx safety check ## NOTE: Safety check is deprecated and `scan` requires browser authentication
-                                ### Good tool though for checking vulnerable dependencies
+      #   run: uvx safety check 
+      ## NOTE: Safety check is deprecated and `scan` requires browser authentication
+      ### Good tool though for checking vulnerable dependencies
+  
+  deploy-docker-hub:
+    name: Upload Image to Dockerhub
+    runs-on: ubuntu-latest
+    needs: test-coverage
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    steps:
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DH_USER }}
+          password: ${{ secrets.DH_TOKEN }}
 
-  ## STAGING: Docker & DO Deployment stages
-  # build-and-deploy:
-  #   name: Build Docker Image and Deploy
-  #   runs-on: ubuntu-latest
-  #   needs: security-audit
-  #   steps:
-  #     - name: Checkout Code
-  #       uses: actions/checkout@v3
+      - name: Build and Push to Docker Hub
+        uses: docker/build-push-action@v5
+        with:
+          push: true
+          tags: topazstix/campmate:latest
+  
+  deploy-aws:
+    name: Deploy to AWS EC2 Instance
+    runs-on: ubuntu-latest
+    needs: deploy-docker-hub
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
 
-  #     - name: Set up Docker Buildx
-  #       uses: docker/setup-buildx-action@v2
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: 3.12.3
 
-  #     - name: Log in to DigitalOcean Container Registry
-  #       run: echo "${{ secrets.DO_REGISTRY_PASSWORD }}" | docker login registry.digitalocean.com -u ${{ secrets.DO_REGISTRY_USERNAME }} --password-stdin
+      - name: Deploy Application
+        env:
+          PRIVATE_KEY: ${{ secrets.EC2_PRIV }}
+          HOST: ${{ secrets.EC2_HOST }}
+          USER: ${{ secrets.EC2_USER }}
+        run: |
+          echo "Deploying application to AWS..."
+          echo "$PRIVATE_KEY" > github-ec2.pem && chmod 600 github-ec2.pem
+          ssh -o StrictHostKeyChecking=no -i github-ec2.pem ${USER}@${HOST}
 
-  #     - name: Build and Tag Docker Image
-  #       run: |
-  #         docker build -t registry.digitalocean.com/${{ secrets.DO_REGISTRY_NAME }}/myapp:${{ github.sha }} .
-  #         docker push registry.digitalocean.com/${{ secrets.DO_REGISTRY_NAME }}/myapp:${{ github.sha }}
-
-  #     - name: Deploy to DigitalOcean App Platform
-  #       env:
-  #         DO_TOKEN: ${{ secrets.DO_TOKEN }}
-  #       run: |
-  #         doctl auth init -t $DO_TOKEN
-  #         doctl apps update ${{ secrets.DO_APP_ID }} --spec app.yaml ## `app.yml` will be located/configured 
-                                                                       ### in DO platform
-
+          cd /home/ubuntu/app/docker
+          echo "Close currently running docker instances"
+          docker compose down
+          echo "Update docker image for campmate"
+          docker compose pull
+          echo "Reinitialize docker swarm in detached mode"
+          docker compose up -d

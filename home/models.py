@@ -31,10 +31,10 @@ class Facility(models.Model):
 
 class TripDetails(models.Model):
     # this is the user that created the trip
-    user = models.ForeignKey("UserProfile", on_delete=models.CASCADE)
-    facility = models.ForeignKey(
-        "Facility", on_delete=models.SET_NULL, null=True, blank=True
-    )
+
+    user = models.ForeignKey('UserProfile', on_delete=models.CASCADE)
+    facility = models.ManyToManyField('Facility', blank=True)
+
 
     start_date = models.DateField()
     end_date = models.DateField()
@@ -45,7 +45,8 @@ class TripDetails(models.Model):
     )
 
     def __str__(self):
-        return f"{self.user.user.username}'s Trip to {self.facility.name} on {self.start_date}"
+        facilities = " ,".join([f.name for f in self.facility.all()])
+        return f"{self.user.user.username}'s Trip to {facilities} on {self.start_date}"
 
 
 # models has the CampUser class, Amenities class,

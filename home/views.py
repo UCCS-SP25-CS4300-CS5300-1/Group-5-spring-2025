@@ -206,20 +206,31 @@ def delete_facility(request, facility_id):
 
 @login_required
 def create_trip_async(request, facility_id):
-    if request.method == "POST":
-        facility = get_object_or_404(Facility, id=facility_id)
+    if request.method == 'POST':
+        # list of favorite facilities
+        selected_facility_ids = request.POST.getlist('favorite_facilities')
+        selected_facility = Facility.objects.filter(id__in=selected_facility_ids)
+
+        # fetching the facility ID for the location pressed on user profile
+        if facility_id:
+            facility = get_object_or_404(Facility, id=facility_id)
+            selected_facility = selected_facility | Facility.objects.filter(id=facility.id)
+
         form = TripDetailsForm(request.POST)
         if form.is_valid():
             trip_data = form.cleaned_data
-            start_date = trip_data["start_date"]
-            end_date = trip_data["end_date"]
-            number_of_people = trip_data["number_of_people"]
+            start_date = trip_data['start_date']
+            end_date = trip_data['end_date']
+            number_of_people = trip_data['number_of_people']
+            
+            facility_names = ", ".join([facility.name for facility in selected_facility])
 
-            # Generate packing list using OpenAI
             prompt = (
-                f"Generate a packing list for {number_of_people} people camping at {facility.name} "
-                f"from {start_date} to {end_date}. Focus on essentials. Consider the weather at this time and location. Give response in a comma separated list"
+                f"Generate a packing list for {number_of_people} people camping at {facility_names} "
+                f"from {start_date} to {end_date}. Focus on essentials. Consider the weather at this time and location. "
+                f"Give response in a comma separated list"
             )
+
             try:
                 openai.api_key = settings.OPENAI_API_KEY
                 ai_response = openai.ChatCompletion.create(
@@ -235,12 +246,16 @@ def create_trip_async(request, facility_id):
             # Create a temporary TripDetails instance
             trip = TripDetails.objects.create(
                 user=request.user.userprofile,
-                facility=facility,
                 start_date=start_date,
                 end_date=end_date,
                 number_of_people=number_of_people,
                 packing_list=packing_list,
             )
+
+            
+            #correctly setting the data for a Many to Many field
+            trip.facility.set(selected_facility)
+
 
             # Store the trip id in session for preview
             request.session["trip_preview_id"] = trip.id
@@ -283,9 +298,33 @@ def cancel_trip(request):
         except TripDetails.DoesNotExist:
             pass
         # Safely delete the session key if it exists and matches
-        if request.session.get("trip_preview_id") == int(trip_id):
-            del request.session["trip_preview_id"]
-    return redirect("user_profile")
+        if request.session.get('trip_preview_id') == int(trip_id):
+            del request.session['trip_preview_id']
+    return redirect('user_profile')
+
+@login_required
+def edit_trip(request, trip_id):
+    trip = get_object_or_404(TripDetails, id=trip_id)
+
+    if request.method == "POST":
+        # Get the submitted data
+        start_date = request.POST.get('start_date')
+        end_date = request.POST.get('end_date')
+        number_of_people = request.POST.get('number_of_people')
+        facility_ids = request.POST.get('edit_facilities', '').split(',')
+
+        # Update trip details
+        trip.start_date = start_date
+        trip.end_date = end_date
+        trip.number_of_people = number_of_people
+        facilities = Facility.objects.filter(id__in=facility_ids)
+        trip.facility.set(facilities)
+
+        trip.save()
+
+        return redirect('trip_detail', trip_id=trip.id)
+    return render(request, 'edit_trip.html', {'trip': trip})
+
 
 
 @login_required
