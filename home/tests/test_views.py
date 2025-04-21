@@ -263,3 +263,40 @@ class TripViewsTest(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, self.facility.name)
         self.assertContains(response, "Tent")
+    
+    def test_trip_edit_view(self):
+        trip = TripDetails.objects.create(
+        user=self.user_profile,
+        start_date=date(2025, 6, 1),
+        end_date=date(2025, 6, 3),
+        number_of_people=2,
+        )
+        trip.facility.set([self.facility])
+
+        new_start = '2025-06-05'
+        new_end = '2025-06-08'
+        new_people = 4
+        new_facility = Facility.objects.create(
+        name='Camp Beta',
+        location='Valley',
+        f_id='BETA1',
+        type='Campground',
+        description='Second facility for testing',
+        )
+
+        url = reverse('edit_trip', kwargs={'trip_id': trip.id})
+        response = self.client.post(url, {
+        'start_date': new_start,
+        'end_date': new_end,
+        'number_of_people': new_people,
+        'edit_facilities': f"{new_facility.id}",
+        })
+
+        trip.refresh_from_db()
+
+        self.assertEqual(response.status_code, 302)
+        self.assertRedirects(response, reverse('trip_detail', kwargs={'trip_id': trip.id}))
+        self.assertEqual(str(trip.start_date), new_start)
+        self.assertEqual(str(trip.end_date), new_end)
+        self.assertEqual(trip.number_of_people, new_people)
+        self.assertIn(new_facility, trip.facility.all())
