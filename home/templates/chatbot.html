@@ -1,0 +1,15 @@
+{% load static %}
+<link href="{% static 'css/chatbot_styles.css' %}" rel="stylesheet">
+
+<div id="chat-container">
+    <div id="chat-box">
+      <div id="chat-log"></div>
+      <div id="chat-options"></div>
+    </div>
+    <button id="chat-toggle" class="btn btn-primary rounded-circle">
+      <i class="fas fa-comment-dots fa-lg"></i>
+    </button>
+    
+  </div>
+
+<script src="{% static 'js/chatbot.js' %}"></script>

@@ -1,0 +1,38 @@
+{# templates/users/trip_details_pdf.html #}
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Trip {{ trip.id }}</title>
+  <style>
+    @page { size: A4; margin: 1cm; }
+    body { font-family: sans-serif; }
+    h2 { font-size: 18pt; margin-bottom: .5em; }
+    .section { margin-bottom: 1em; }
+    ul { list-style-type: square; padding-left: 1.2em; }
+    /* …any other print styles… */
+  </style>
+</head>
+<body>
+  <h2>{{ user.username }}’s Trip to
+    {% for facility in trip.facility.all %}{{ facility.name }}{% if not forloop.last %}, {% endif %}{% endfor %}
+  </h2>
+
+  <div class="section">
+    <strong>Dates:</strong> {{ trip.start_date }} – {{ trip.end_date }}<br>
+    <strong>People:</strong> {{ trip.number_of_people }}
+  </div>
+
+  <div class="section">
+    <h3>Packing List</h3>
+    <ul>
+        {% for item in packing_items %}
+          <li>{{ item }}</li>
+        {% empty %}
+          <li><em>No items added.</em></li>
+        {% endfor %}
+      </ul>
+      
+  </div>
+</body>
+</html>
