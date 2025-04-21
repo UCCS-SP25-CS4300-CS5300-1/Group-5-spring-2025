@@ -1,9 +1,11 @@
 # signals handles the automatic creation of a UserProfile whenever a CampUser is created
 
-from .views import UserProfile
-from .models import CampUser
-from django.dispatch import receiver
 from django.db.models.signals import post_save
+from django.dispatch import receiver
+
+from .models import CampUser
+from .views import UserProfile
+
 
 # send a signal to create a user profile whenever a user is created
 @receiver(post_save, sender=CampUser)
