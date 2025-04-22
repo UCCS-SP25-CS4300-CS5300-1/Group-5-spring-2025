@@ -178,7 +178,9 @@ class TripDetailsModelTests(TestCase):
 
         trip.facility.set([self.facility])
 
-        expected = f"{self.user.username}'s Trip to {self.facility.name} on {trip.start_date}"
+        expected = (
+            f"{self.user.username}'s Trip to {self.facility.name} on {trip.start_date}"
+        )
 
         self.assertEqual(str(trip), expected)
 
@@ -213,4 +215,3 @@ class TripDetailsModelTests(TestCase):
             )
 
             self.trip.facility.set([self.facility])
-

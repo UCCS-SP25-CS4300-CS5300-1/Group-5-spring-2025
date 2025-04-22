@@ -1,6 +1,9 @@
-from django.test import TestCase
 from unittest.mock import patch
-from home.utils import fetch_weather, check_hazards
+
+from django.test import TestCase
+
+from home.utils import check_hazards, fetch_weather
+
 
 class WeatherUtilsTests(TestCase):
 
@@ -12,7 +15,7 @@ class WeatherUtilsTests(TestCase):
                 "time": ["2025-04-21", "2025-04-22"],
                 "temperature_2m_max": [20.0, 22.0],
                 "temperature_2m_min": [10.0, 11.0],
-                "weathercode": [0, 95]  # 0 = Clear, 95 = Thunderstorm
+                "weathercode": [0, 95],  # 0 = Clear, 95 = Thunderstorm
             }
         }
 
@@ -27,7 +30,7 @@ class WeatherUtilsTests(TestCase):
         sample_forecast = [
             {"date": "2025-04-21", "condition": "Clear sky"},
             {"date": "2025-04-22", "condition": "Thunderstorm"},
-            {"date": "2025-04-23", "condition": "Heavy snowfall"}
+            {"date": "2025-04-23", "condition": "Heavy snowfall"},
         ]
         hazards = check_hazards(sample_forecast)
         self.assertEqual(len(hazards), 2)

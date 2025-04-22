@@ -35,7 +35,7 @@ class TripDetailsForm(forms.ModelForm):
         queryset=Facility.objects.all(),
         widget=forms.CheckboxSelectMultiple,
         required=False,
-        label="Locations"
+        label="Locations",
     )
 
     number_of_people = forms.TypedChoiceField(

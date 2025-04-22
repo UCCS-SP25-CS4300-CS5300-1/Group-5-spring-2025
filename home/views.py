@@ -1,53 +1,35 @@
-
-from datetime import datetime
-import requests
-
-
-from home.utils import (
-    return_facility_detail, 
-    return_facility_address, 
-    return_facility_url, 
-    search_facilities, 
-    fetch_weather, 
-    check_hazards
-)
-
-
-import openai
-from django.contrib.auth import logout
-from django.contrib.auth.decorators import login_required
-
-
-from django.contrib.auth.forms import UserCreationForm
-from django.http import JsonResponse, HttpResponse
-from django.shortcuts import get_object_or_404, redirect, render
-from django.utils.decorators import method_decorator
-from django.views.decorators.csrf import csrf_exempt
-
-from weasyprint import HTML
-from django.template.loader import render_to_string
-
-
-
-
-from home.models import Facility
-from home.utils import return_facility_detail, search_facilities
-import re
-from .forms import *
-
-from .models import *
-
-from .utils import *
-
-
-import os
-import json
-
-
 # Test, for calendar feature
 import calendar
+import json
+import os
+import re
+from datetime import datetime
 
+import openai
+import requests
+from django.contrib.auth import logout
+from django.contrib.auth.decorators import login_required
+from django.contrib.auth.forms import UserCreationForm
+from django.http import HttpResponse, JsonResponse
+from django.shortcuts import get_object_or_404, redirect, render
+from django.template.loader import render_to_string
+from django.utils.decorators import method_decorator
+from django.views.decorators.csrf import csrf_exempt
+from weasyprint import HTML
 
+from home.models import Facility
+from home.utils import (
+    check_hazards,
+    fetch_weather,
+    return_facility_address,
+    return_facility_detail,
+    return_facility_url,
+    search_facilities,
+)
+
+from .forms import *
+from .models import *
+from .utils import *
 
 
 # Create your views here.
@@ -121,27 +103,24 @@ def save_facility(request, facility_id):
     url = return_facility_url(facility_id)
     location = return_facility_address(facility_id)
 
-
     # create the saved facility (or get it if it already exists in user profile) [Updated to work long & lat for weather]
     facility, _ = Facility.objects.update_or_create(
-    f_id=facility_id,
-    defaults={
-        "name": name,
-        "location": location,
-        "type": type,
-        "accessibility_txt": acessibility_txt,
-        "ada_accessibility": ada,
-        "phone": phone,
-        "email": email,
-        "description": desc,
-        "reservable": reservable,
-        "url": url,
-        "latitude": testfacility.get("FacilityLatitude"),
-        "longitude": testfacility.get("FacilityLongitude"),
-    }
-)
-    
-    
+        f_id=facility_id,
+        defaults={
+            "name": name,
+            "location": location,
+            "type": type,
+            "accessibility_txt": acessibility_txt,
+            "ada_accessibility": ada,
+            "phone": phone,
+            "email": email,
+            "description": desc,
+            "reservable": reservable,
+            "url": url,
+            "latitude": testfacility.get("FacilityLatitude"),
+            "longitude": testfacility.get("FacilityLongitude"),
+        },
+    )
 
     # add this facility to user's favorited_loc attribute
     # (but really this is an attribute of UserProfile which is an attribute of user... have
@@ -149,8 +128,6 @@ def save_facility(request, facility_id):
     user.userprofile.favorited_loc.add(facility)
     # redirects to user profile that shows all favorited campsites
     return redirect("user_profile")
-
-
 
 
 # this gets the user creation form for CampUser - uses the form created in forms.py
@@ -235,29 +212,33 @@ def delete_facility(request, facility_id):
 
 @login_required
 def create_trip_async(request, facility_id):
-    if request.method == 'POST':
+    if request.method == "POST":
         # list of favorite facilities
-        selected_facility_ids = request.POST.getlist('favorite_facilities')
+        selected_facility_ids = request.POST.getlist("favorite_facilities")
         selected_facility = Facility.objects.filter(id__in=selected_facility_ids)
 
         # fetching the facility ID for the location pressed on user profile
         if facility_id:
             facility = get_object_or_404(Facility, id=facility_id)
-            selected_facility = selected_facility | Facility.objects.filter(id=facility.id)
+            selected_facility = selected_facility | Facility.objects.filter(
+                id=facility.id
+            )
 
         form = TripDetailsForm(request.POST)
         if form.is_valid():
             trip_data = form.cleaned_data
-            start_date = trip_data['start_date']
-            end_date = trip_data['end_date']
-            number_of_people = trip_data['number_of_people']
+            start_date = trip_data["start_date"]
+            end_date = trip_data["end_date"]
+            number_of_people = trip_data["number_of_people"]
 
-            facility_names = ", ".join([facility.name for facility in selected_facility])
+            facility_names = ", ".join(
+                [facility.name for facility in selected_facility]
+            )
             prompt = (
                 f"Generate a packing list for {number_of_people} people camping at {facility_names} "
                 f"from {start_date} to {end_date}. Focus on essentials. Consider the weather at this time and location. "
                 f"Give response in a comma separated list"
-            ) 
+            )
 
             try:
                 openai.api_key = settings.OPENAI_API_KEY
@@ -280,10 +261,8 @@ def create_trip_async(request, facility_id):
                 packing_list=packing_list,
             )
 
-            
-            #correctly setting the data for a Many to Many field
+            # correctly setting the data for a Many to Many field
             trip.facility.set(selected_facility)
-
 
             # Store the trip id in session for preview
             request.session["trip_preview_id"] = trip.id
@@ -326,9 +305,9 @@ def cancel_trip(request):
         except TripDetails.DoesNotExist:
             pass
         # Safely delete the session key if it exists and matches
-        if request.session.get('trip_preview_id') == int(trip_id):
-            del request.session['trip_preview_id']
-    return redirect('user_profile')
+        if request.session.get("trip_preview_id") == int(trip_id):
+            del request.session["trip_preview_id"]
+    return redirect("user_profile")
 
 
 @login_required
@@ -337,10 +316,10 @@ def edit_trip(request, trip_id):
 
     if request.method == "POST":
         # Get the submitted data
-        start_date = request.POST.get('start_date')
-        end_date = request.POST.get('end_date')
-        number_of_people = request.POST.get('number_of_people')
-        facility_ids = request.POST.get('edit_facilities', '').split(',')
+        start_date = request.POST.get("start_date")
+        end_date = request.POST.get("end_date")
+        number_of_people = request.POST.get("number_of_people")
+        facility_ids = request.POST.get("edit_facilities", "").split(",")
 
         # Update trip details
         trip.start_date = start_date
@@ -351,9 +330,8 @@ def edit_trip(request, trip_id):
 
         trip.save()
 
-        return redirect('trip_detail', trip_id=trip.id)
-    return render(request, 'edit_trip.html', {'trip': trip})
-
+        return redirect("trip_detail", trip_id=trip.id)
+    return render(request, "edit_trip.html", {"trip": trip})
 
 
 @login_required
@@ -362,15 +340,11 @@ def trip_detail(request, trip_id):
     return render(request, "users/trip_details.html", {"trip": trip})
 
 
-
-
-
-
 @csrf_exempt
 def chatbot_view(request):
-    if request.method == 'POST':
+    if request.method == "POST":
         body = json.loads(request.body)
-        user_message = body.get('message', '')
+        user_message = body.get("message", "")
 
         # Construct smart prompt with instruction for follow-ups
         prompt = f"""You are a helpful camping trip assistant. The user asked: "{user_message}" First, give a helpful, concise answer. Then, suggest 2-3 follow-up questions the user might ask next. List them clearly under the heading "Follow-up questions:", like this:
@@ -383,8 +357,7 @@ def chatbot_view(request):
         try:
             openai.api_key = settings.OPENAI_API_KEY
             response = openai.ChatCompletion.create(
-                model="gpt-3.5-turbo",
-                messages=[{"role": "user", "content": prompt}]
+                model="gpt-3.5-turbo", messages=[{"role": "user", "content": prompt}]
             )
             full_reply = response.choices[0].message.content.strip()
 
@@ -392,20 +365,16 @@ def chatbot_view(request):
             followups = re.findall(r"- (.+)", full_reply)
 
             # Clean + trim to under 100 chars, limit to 3
-            cleaned_followups = [
-                q.strip() for q in followups if len(q.strip()) <= 100
-            ][:3]
+            cleaned_followups = [q.strip() for q in followups if len(q.strip()) <= 100][
+                :3
+            ]
 
-            return JsonResponse({
-                'reply': full_reply,
-                'followups': cleaned_followups
-            })
+            return JsonResponse({"reply": full_reply, "followups": cleaned_followups})
 
         except Exception as e:
-            return JsonResponse({'reply': f"Sorry, something went wrong: {str(e)}"})
-        
-    return JsonResponse({"reply": "This endpoint only accepts POST requests."})
+            return JsonResponse({"reply": f"Sorry, something went wrong: {str(e)}"})
 
+    return JsonResponse({"reply": "This endpoint only accepts POST requests."})
 
 
 @login_required
@@ -419,20 +388,24 @@ def trip_detail(request, trip_id):
     if facility and facility.latitude and facility.longitude:
         lat = facility.latitude
         lon = facility.longitude
-        
-        start_date = trip.start_date.strftime('%Y-%m-%d')
-        end_date = trip.end_date.strftime('%Y-%m-%d')
+
+        start_date = trip.start_date.strftime("%Y-%m-%d")
+        end_date = trip.end_date.strftime("%Y-%m-%d")
 
         forecast = fetch_weather(lat, lon, start_date, end_date)
         hazards_found = check_hazards(forecast)
         hazards_detected = bool(hazards_found)
         weather_forecast = forecast
 
-    return render(request, 'users/trip_details.html', {
-        'trip': trip,
-        'weather_forecast': weather_forecast,
-        'hazards_detected': hazards_detected
-    })
+    return render(
+        request,
+        "users/trip_details.html",
+        {
+            "trip": trip,
+            "weather_forecast": weather_forecast,
+            "hazards_detected": hazards_detected,
+        },
+    )
 
 
 @login_required
@@ -444,10 +417,10 @@ def trip_detail_pdf(request, trip_id):
     html_string = render_to_string(
         "users/trip_details_pdf.html",
         {"trip": trip, "user": request.user, "packing_items": packing_items},
-        request=request
+        request=request,
     )
 
-    html = HTML(string=html_string, base_url=request.build_absolute_uri('/'))
+    html = HTML(string=html_string, base_url=request.build_absolute_uri("/"))
     pdf_bytes = html.write_pdf()
 
     response = HttpResponse(pdf_bytes, content_type="application/pdf")
@@ -455,7 +428,7 @@ def trip_detail_pdf(request, trip_id):
     return response
 
 
-# generate calendar 
+# generate calendar
 # year and month are optional. this is bc user can navigate to next month if desired
 @login_required
 def calendar_view(request, year=None, month=None):
@@ -464,9 +437,9 @@ def calendar_view(request, year=None, month=None):
     month = month or now.month
     # ah, a really silly way to resolve index error if user enters calendar/<year>/<some#waymorethan12> in searchbar
     month = month % 12
-    trips = TripDetails.objects.filter(user = request.user.userprofile)
+    trips = TripDetails.objects.filter(user=request.user.userprofile)
 
-    # very naive logic for grabbing the next month and corresponding year 
+    # very naive logic for grabbing the next month and corresponding year
     # user can only traverse through one month at a time, backward or forward.
     if month == 12:
         nextmonth = 1
@@ -489,15 +462,13 @@ def calendar_view(request, year=None, month=None):
     html_cal = cal_obj.formatmonth()
 
     context = {
-        'calendar': html_cal,
-        'month': month,
-        'year': year,
-        'nextyear': nextyear,
-        'nextmonth': nextmonth,
-        'prevyear': prevyear,
-        'prevmonth': prevmonth
+        "calendar": html_cal,
+        "month": month,
+        "year": year,
+        "nextyear": nextyear,
+        "nextmonth": nextmonth,
+        "prevyear": prevyear,
+        "prevmonth": prevmonth,
     }
 
-    return render(request, 'users/calendar.html', context)
-
-
+    return render(request, "users/calendar.html", context)
