@@ -1,14 +1,10 @@
 import json
-from calendar import HTMLCalendar
 from datetime import date, timedelta
 from unittest.mock import MagicMock, Mock, patch
 
 from django.contrib.auth import get_user_model
-from django.contrib.auth.models import User
-from django.http import JsonResponse
 from django.test import Client, TestCase
 from django.urls import reverse
-from django.contrib.auth import get_user_model
 
 from home.models import CampUser, Facility, TripDetails, UserProfile
 
