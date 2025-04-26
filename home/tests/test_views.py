@@ -1,9 +1,3 @@
-<<<<<<< HEAD
-from datetime import date
-import json
-from unittest.mock import MagicMock, patch, Mock
-
-=======
 import json
 from calendar import HTMLCalendar
 from datetime import date, timedelta
@@ -12,16 +6,11 @@ from unittest.mock import MagicMock, Mock, patch
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import User
 from django.http import JsonResponse
->>>>>>> origin/dev_to_combine
 from django.test import Client, TestCase
 from django.urls import reverse
 from django.contrib.auth import get_user_model
 
-<<<<<<< HEAD
-from home.models import Facility, TripDetails, UserProfile
-=======
 from home.models import CampUser, Facility, TripDetails, UserProfile
->>>>>>> origin/dev_to_combine
 
 
 class ViewTests(TestCase):
@@ -341,12 +330,8 @@ class TripViewsTest(TestCase):
 
         self.assertEqual(response.status_code, 302)
         self.assertRedirects(
-<<<<<<< HEAD
             response,
             reverse('trip_detail', kwargs={'trip_id': trip.id})
-=======
-            response, reverse("trip_detail", kwargs={"trip_id": trip.id})
->>>>>>> origin/dev_to_combine
         )
         self.assertEqual(str(trip.start_date), new_start)
         self.assertEqual(str(trip.end_date), new_end)
