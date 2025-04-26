@@ -2,11 +2,9 @@ from datetime import date
 import json
 from unittest.mock import MagicMock, patch, Mock
 
-from django.contrib.auth import get_user_model
-from django.contrib.auth.models import User
-from django.http import JsonResponse
 from django.test import Client, TestCase
 from django.urls import reverse
+from django.contrib.auth import get_user_model
 
 from home.models import Facility, TripDetails, UserProfile
 
@@ -324,7 +322,10 @@ class TripViewsTest(TestCase):
         trip.refresh_from_db()
 
         self.assertEqual(response.status_code, 302)
-        self.assertRedirects(response, reverse('trip_detail', kwargs={'trip_id': trip.id}))
+        self.assertRedirects(
+            response,
+            reverse('trip_detail', kwargs={'trip_id': trip.id})
+        )
         self.assertEqual(str(trip.start_date), new_start)
         self.assertEqual(str(trip.end_date), new_end)
         self.assertEqual(trip.number_of_people, new_people)
