@@ -1,5 +1,10 @@
+from calendar import HTMLCalendar
+from datetime import date
+
 import requests
 from django.conf import settings
+from django.templatetags.static import static
+from django.urls import reverse
 
 from .models import *
 
@@ -181,3 +186,239 @@ def return_facility_url(facility_id):
 
     else:
         return {}
+
+
+# calendar stuff
+# create a custom class based off python's built-in html calendar
+# note: i wanted to incorporate bootstrap into the html calendar, so i have to override the methods of the class in order to have
+# bootstrap formatting.
+# based off this documentation: https://docs.python.org/3/library/calendar.html
+# code thats overwritten can be found here https://github.com/python/cpython/blob/3.13/Lib/calendar.py
+class MyHTMLCalendar(HTMLCalendar):
+    def __init__(self, trips, year, month):
+        super().__init__()
+        self.trips = trips
+        self.year = year
+        self.month = month
+
+    """
+    Return a string representing a single day. if day is 0, return a string representing empty day (for days bordering or trailing months) 
+    Weekday parameter is unused. 
+    """
+
+    def formatday(self, day, weekday):
+
+        # if day is NOT a bordering day (day of past or next month)
+        if day != 0:
+            current_date = date(self.year, self.month, day)
+            # if trip occurs on weekday, format special w/ link to trip details
+            for trip in self.trips:
+                if trip.start_date <= current_date <= trip.end_date:
+                    # have to do these
+                    trip_url = reverse("trip_detail", args=[trip.id])
+                    img_url = static("images/cm.png")
+                    return f'<td class="day-trip table-light text-center">{day} <br> <a href="{trip_url}"><img src="{img_url}"  width="60" height="60"></a> </td>'
+            # normal weekday, no trip
+            return f'<td class="table-light text-center">{day}</td>'
+        # bordering day
+        return '<td class="table-secondary"></td>'
+
+    """
+    Return a string representing a single week with no newline. uses formatday func to do this, iterating through all days in a week
+    """
+
+    def formatweek(self, theweek):
+        week_html = "".join(self.formatday(d, wd) for d, wd in theweek)
+        return f"<tr>{week_html}</tr>"
+
+    """
+    Return a month's calendar in a multiline string (bootstrap table)
+    withyear=True means the year will be included in the output
+    """
+
+    def formatmonth(self, withyear=True):
+        # this is how the whole table calendar itself is formated
+        # small, bordered, and color changes if hovering above row (might change later)
+        cal = f'<table class="table table-bordered table-sm">'
+        cal += f"{self.formatmonthname(self.year, self.month, withyear=withyear)}"
+        # first calendar table row that shows month and year
+        cal += f"{self.formatweekheader()}"
+        # monthdays2calendar returns a list of the weeks in the month of the year as full weeks; weeks are lists of seven tuples of day numbers and
+        # weekday numbers
+        for week in self.monthdays2calendar(self.year, self.month):
+            cal += self.formatweek(week)
+        cal += "</table>"
+        return cal
+
+
+# import requests
+
+# def fetch_weather(lat, lon, start_date, end_date):
+#     """Get weather forecast using Open-Meteo API."""
+#     url = (
+#         f"https://api.open-meteo.com/v1/forecast"
+#         f"?latitude={lat}&longitude={lon}"
+#         f"&start_date={start_date}&end_date={end_date}"
+#         f"&daily=temperature_2m_max,temperature_2m_min,weathercode"
+#         f"&timezone=auto"
+#     )
+#     res = requests.get(url)
+#     if res.status_code != 200:
+#         return []
+
+#     data = res.json()
+
+#     code_map = {
+#         0: "Clear sky",
+#         1: "Mainly clear",
+#         2: "Partly cloudy",
+#         3: "Overcast",
+#         45: "Fog",
+#         48: "Depositing rime fog",
+#         51: "Light drizzle",
+#         53: "Moderate drizzle",
+#         55: "Dense drizzle",
+#         56: "Light freezing drizzle",
+#         57: "Dense freezing drizzle",
+#         61: "Slight rain",
+#         63: "Moderate rain",
+#         65: "Heavy rain",
+#         66: "Light freezing rain",
+#         67: "Heavy freezing rain",
+#         71: "Slight snow fall",
+#         73: "Moderate snow fall",
+#         75: "Heavy snow fall",
+#         77: "Snow grains",
+#         80: "Slight rain showers",
+#         81: "Moderate rain showers",
+#         82: "Violent rain showers",
+#         85: "Slight snow showers",
+#         86: "Heavy snow showers",
+#         95: "Thunderstorm",
+#         96: "Thunderstorm with slight hail",
+#         99: "Thunderstorm with heavy hail",
+#     }
+
+#     forecast = []
+#     for date, tmax, tmin, code in zip(
+#         data['daily']['time'],
+#         data['daily']['temperature_2m_max'],
+#         data['daily']['temperature_2m_min'],
+#         data['daily']['weathercode']
+#     ):
+#         forecast.append({
+#             'date': date,
+#             'temp_max': round(tmax * 9/5 + 32),
+#             'temp_min': round(tmin * 9/5 + 32),
+#             'condition': code_map.get(code, "Unknown")
+#         })
+
+#     return forecast
+
+
+from datetime import datetime, timedelta
+
+import requests
+
+
+def fetch_weather(lat, lon, start_date, end_date):
+    """Get weather forecast using Open-Meteo API."""
+    url = (
+        f"https://api.open-meteo.com/v1/forecast"
+        f"?latitude={lat}&longitude={lon}"
+        f"&start_date={start_date}&end_date={end_date}"
+        f"&daily=temperature_2m_max,temperature_2m_min,weathercode"
+        f"&timezone=auto"
+    )
+    res = requests.get(url)
+    if res.status_code != 200:
+        return []
+
+    data = res.json()
+
+    code_map = {
+        0: "Clear sky",
+        1: "Mainly clear",
+        2: "Partly cloudy",
+        3: "Overcast",
+        45: "Fog",
+        48: "Depositing rime fog",
+        51: "Light drizzle",
+        53: "Moderate drizzle",
+        55: "Dense drizzle",
+        56: "Light freezing drizzle",
+        57: "Dense freezing drizzle",
+        61: "Slight rain",
+        63: "Moderate rain",
+        65: "Heavy rain",
+        66: "Light freezing rain",
+        67: "Heavy freezing rain",
+        71: "Slight snowfall",
+        73: "Moderate snowfall",
+        75: "Heavy snowfall",
+        77: "Snow grains",
+        80: "Slight rain showers",
+        81: "Moderate rain showers",
+        82: "Violent rain showers",
+        85: "Slight snow showers",
+        86: "Heavy snow showers",
+        95: "Thunderstorm",
+        96: "Thunderstorm with slight hail",
+        99: "Thunderstorm with heavy hail",
+    }
+
+    forecast = []
+    dates_available = data["daily"]["time"]
+    max_date_available = datetime.strptime(dates_available[-1], "%Y-%m-%d").date()
+
+    for date, tmax, tmin, code in zip(
+        data["daily"]["time"],
+        data["daily"]["temperature_2m_max"],
+        data["daily"]["temperature_2m_min"],
+        data["daily"]["weathercode"],
+    ):
+        forecast.append(
+            {
+                "date": date,
+                "temp_max": round(tmax * 9 / 5 + 32),
+                "temp_min": round(tmin * 9 / 5 + 32),
+                "condition": code_map.get(code, "Unknown"),
+            }
+        )
+
+    # Fill in unavailable forecast days if trip goes beyond what API returns
+    actual_start = datetime.strptime(start_date, "%Y-%m-%d").date()
+    actual_end = datetime.strptime(end_date, "%Y-%m-%d").date()
+    current_day = max_date_available + timedelta(days=1)
+
+    while current_day <= actual_end:
+        forecast.append(
+            {
+                "date": current_day.strftime("%Y-%m-%d"),
+                "temp_max": None,
+                "temp_min": None,
+                "condition": "Forecast unavailable — exceeds API range",
+            }
+        )
+        current_day += timedelta(days=1)
+
+    return forecast
+
+
+hazards = [
+    "Dense freezing drizzle",
+    "Heavy rain",
+    "Heavy freezing rain",
+    "Moderate snowfall",
+    "Heavy snowfall",
+    "Violent rain showers",
+    "Heavy snow showers",
+    "Thunderstorm",
+    "Thunderstorm w/ slight hail",
+    "Thunderstorm w/ heavy hail",
+]
+
+
+def check_hazards(daily_conditions):
+    """Return list of days that match hazardous conditions."""
+    return [day for day in daily_conditions if day["condition"] in hazards]

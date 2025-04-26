@@ -10,22 +10,22 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/4.2/ref/settings/
 """
 
-from pathlib import Path
+import os
 import secrets
+from pathlib import Path
 
 from decouple import config
-import os
 
 OPENAI_API_KEY = config("OPENAI_API_KEY", default="dummy-key")
+
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 
 ## WE'VE FIXED STATIC/CSS STUFF! WOOOOO (tested over n over)
-STATIC_URL = '/static/'
-STATIC_ROOT = BASE_DIR / 'staticfiles'
-
+STATIC_URL = "/static/"
+STATIC_ROOT = BASE_DIR / "staticfiles"
 
 
 # Quick-start development settings - unsuitable for production
@@ -33,28 +33,29 @@ STATIC_ROOT = BASE_DIR / 'staticfiles'
 
 # SECURITY WARNING: keep the secret key used in production secret!
 
-SECRET_KEY = secrets.token_urlsafe(64) ## Should be imported or generated in a better secrets env
+SECRET_KEY = secrets.token_urlsafe(
+    64
+)  ## Should be imported or generated in a better secrets env
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
 ALLOWED_HOSTS = [
-      'editor-advsedjango-5.devedu.io',
-      '127.0.0.1',
-      'app-advsedjango-5.devedu.io',
-      'campmate-cs4300-ey35p.ondigitalocean.app',
-      'campmate.ddns.net',
-      '146.190.139.92',
-      '54.213.17.138',
+    "editor-advsedjango-5.devedu.io",
+    "127.0.0.1",
+    "app-advsedjango-5.devedu.io",
+    "campmate-cs4300-ey35p.ondigitalocean.app",
+    "campmate.ddns.net",
+    "146.190.139.92",
+    "54.213.17.138",
 ]
 
 CSRF_TRUSTED_ORIGINS = [
-    'https://campmate-cs4300-ey35p.ondigitalocean.app/',
-    'https://campmate.ddns.net',
-    'http://146.190.139.92/',
-    'http://54.213.17.138/',
-    'https://54.213.17.138/',
-
+    "https://campmate-cs4300-ey35p.ondigitalocean.app/",
+    "https://campmate.ddns.net",
+    "http://146.190.139.92/",
+    "http://54.213.17.138/",
+    "https://54.213.17.138/",
 ]
 
 
@@ -71,21 +72,21 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
-    'django.middleware.security.SecurityMiddleware',
-    'whitenoise.middleware.WhiteNoiseMiddleware', ## Whitenoise mod helps handle static generation
-    'django.contrib.sessions.middleware.SessionMiddleware',
-    'django.middleware.common.CommonMiddleware',
-    'django.middleware.csrf.CsrfViewMiddleware',
-    'django.contrib.auth.middleware.AuthenticationMiddleware',
-    'django.contrib.messages.middleware.MessageMiddleware',
-    'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    "django.middleware.security.SecurityMiddleware",
+    "whitenoise.middleware.WhiteNoiseMiddleware",  ## Whitenoise mod helps handle static generation
+    "django.contrib.sessions.middleware.SessionMiddleware",
+    "django.middleware.common.CommonMiddleware",
+    "django.middleware.csrf.CsrfViewMiddleware",
+    "django.contrib.auth.middleware.AuthenticationMiddleware",
+    "django.contrib.messages.middleware.MessageMiddleware",
+    "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
 
 ## Whitenoise caching and gzip compression
 # Compress static files automatically (e.g., generate .gz files for browsers that support them)
-STATICFILES_STORAGE = 'whitenoise.storage.CompressedStaticFilesStorage'
+STATICFILES_STORAGE = "whitenoise.storage.CompressedStaticFilesStorage"
 
-ROOT_URLCONF = 'camp_mate.urls'
+ROOT_URLCONF = "camp_mate.urls"
 
 
 TEMPLATES = [
@@ -153,7 +154,7 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/4.2/howto/static-files/
 
 
-#STATIC_URL = 'static/'
+# STATIC_URL = 'static/'
 
 
 # Default primary key field type

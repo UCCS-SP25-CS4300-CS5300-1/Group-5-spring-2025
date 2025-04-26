@@ -25,6 +25,9 @@ class Facility(models.Model):
     reservable = models.BooleanField(default=False)
     url = models.CharField(max_length=255, blank=True, null=True)
 
+    latitude = models.FloatField(null=True, blank=True)
+    longitude = models.FloatField(null=True, blank=True)
+
     def __str__(self):
         return self.name
 
@@ -32,9 +35,8 @@ class Facility(models.Model):
 class TripDetails(models.Model):
     # this is the user that created the trip
 
-    user = models.ForeignKey('UserProfile', on_delete=models.CASCADE)
-    facility = models.ManyToManyField('Facility', blank=True)
-
+    user = models.ForeignKey("UserProfile", on_delete=models.CASCADE)
+    facility = models.ManyToManyField("Facility", blank=True)
 
     start_date = models.DateField()
     end_date = models.DateField()

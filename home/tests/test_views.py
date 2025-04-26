@@ -1,12 +1,27 @@
+<<<<<<< HEAD
 from datetime import date
 import json
 from unittest.mock import MagicMock, patch, Mock
 
+=======
+import json
+from calendar import HTMLCalendar
+from datetime import date, timedelta
+from unittest.mock import MagicMock, Mock, patch
+
+from django.contrib.auth import get_user_model
+from django.contrib.auth.models import User
+from django.http import JsonResponse
+>>>>>>> origin/dev_to_combine
 from django.test import Client, TestCase
 from django.urls import reverse
 from django.contrib.auth import get_user_model
 
+<<<<<<< HEAD
 from home.models import Facility, TripDetails, UserProfile
+=======
+from home.models import CampUser, Facility, TripDetails, UserProfile
+>>>>>>> origin/dev_to_combine
 
 
 class ViewTests(TestCase):
@@ -285,7 +300,7 @@ class TripViewsTest(TestCase):
 
         trip.facility.set([self.facility])
 
-        response = self.client.get(reverse('trip_detail', kwargs={'trip_id': trip.id}))
+        response = self.client.get(reverse("trip_detail", kwargs={"trip_id": trip.id}))
 
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, self.facility.name)
@@ -293,38 +308,45 @@ class TripViewsTest(TestCase):
 
     def test_trip_edit_view(self):
         trip = TripDetails.objects.create(
-        user=self.user_profile,
-        start_date=date(2025, 6, 1),
-        end_date=date(2025, 6, 3),
-        number_of_people=2,
+            user=self.user_profile,
+            start_date=date(2025, 6, 1),
+            end_date=date(2025, 6, 3),
+            number_of_people=2,
         )
         trip.facility.set([self.facility])
 
-        new_start = '2025-06-05'
-        new_end = '2025-06-08'
+        new_start = "2025-06-05"
+        new_end = "2025-06-08"
         new_people = 4
         new_facility = Facility.objects.create(
-        name='Camp Beta',
-        location='Valley',
-        f_id='BETA1',
-        type='Campground',
-        description='Second facility for testing',
+            name="Camp Beta",
+            location="Valley",
+            f_id="BETA1",
+            type="Campground",
+            description="Second facility for testing",
         )
 
-        url = reverse('edit_trip', kwargs={'trip_id': trip.id})
-        response = self.client.post(url, {
-        'start_date': new_start,
-        'end_date': new_end,
-        'number_of_people': new_people,
-        'edit_facilities': f"{new_facility.id}",
-        })
+        url = reverse("edit_trip", kwargs={"trip_id": trip.id})
+        response = self.client.post(
+            url,
+            {
+                "start_date": new_start,
+                "end_date": new_end,
+                "number_of_people": new_people,
+                "edit_facilities": f"{new_facility.id}",
+            },
+        )
 
         trip.refresh_from_db()
 
         self.assertEqual(response.status_code, 302)
         self.assertRedirects(
+<<<<<<< HEAD
             response,
             reverse('trip_detail', kwargs={'trip_id': trip.id})
+=======
+            response, reverse("trip_detail", kwargs={"trip_id": trip.id})
+>>>>>>> origin/dev_to_combine
         )
         self.assertEqual(str(trip.start_date), new_start)
         self.assertEqual(str(trip.end_date), new_end)
@@ -332,10 +354,50 @@ class TripViewsTest(TestCase):
         self.assertIn(new_facility, trip.facility.all())
 
 
+# test for calendar view
+class CalendarViewTest(TestCase):
+    def setUp(self):
+        self.client = Client()
+        self.user = CampUser.objects.create_user(
+            username="testuser", password="testpassword123"
+        )
+        self.profile = self.user.userprofile
+
+        self.trip = TripDetails.objects.create(
+            user=self.profile,
+            start_date=date.today(),
+            end_date=date.today() + timedelta(days=1),
+            number_of_people=2,
+        )
+
+    def test_calendar_view_authenticated(self):
+        self.client.login(username="testuser", password="testpassword123")
+        response = self.client.get(reverse("current_calendar"))
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, "users/calendar.html")
+
+    def test_trip_appears_in_calendar(self):
+        self.client.login(username="testuser", password="testpassword123")
+        response = self.client.get(reverse("current_calendar"))
+        # find needle in haystack: this specific line of html should appear if view functions as it should
+        # special html format for calendar day based on trip
+        needle = f'<td class="day-trip table-light text-center">{self.trip.start_date.day} <br> <a href="/trip/{self.trip.id}/"><img src="/static/images/cm.png"  width="60" height="60"></a> </td>'
+        haystack = response.content.decode()
+        self.assertInHTML(needle, haystack)
+
+    def test_calendar_navigation(self):
+        self.client.login(username="testuser", password="testpassword123")
+        response = self.client.get(reverse("traverse_calendar", args=[2025, 1]))
+        self.assertEqual(response.context["nextmonth"], 2)
+        self.assertEqual(response.context["nextyear"], 2025)
+        self.assertEqual(response.context["prevmonth"], 12)
+        self.assertEqual(response.context["prevyear"], 2024)
+
+
 class ChatbotViewTests(TestCase):
     def setUp(self):
         self.client = Client()
-        self.url = reverse('chatbot')  # Make sure your URL name is 'chatbot'
+        self.url = reverse("chatbot")  # Make sure your URL name is 'chatbot'
 
     @patch("openai.ChatCompletion.create")
     def test_chatbot_view_successful_post(self, mock_openai_create):
@@ -355,9 +417,7 @@ class ChatbotViewTests(TestCase):
 
         data = {"message": "What are tips for first-time campers?"}
         response = self.client.post(
-            self.url,
-            data=json.dumps(data),
-            content_type='application/json'
+            self.url, data=json.dumps(data), content_type="application/json"
         )
 
         self.assertEqual(response.status_code, 200)

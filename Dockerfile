@@ -28,6 +28,9 @@ RUN pip install uv && \
 # Copy the rest of the application code
 COPY . /app/
 
+## Oopsie forgor to update database on new code..
+RUN python manage.py migrate
+
 # Collect static files for production
 RUN python manage.py collectstatic --noinput
 
