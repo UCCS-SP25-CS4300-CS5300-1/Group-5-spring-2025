@@ -1,15 +1,14 @@
 from datetime import date
+import json
 from unittest.mock import MagicMock, patch, Mock
 
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import User
+from django.http import JsonResponse
 from django.test import Client, TestCase
 from django.urls import reverse
 
 from home.models import Facility, TripDetails, UserProfile
-
-from django.http import JsonResponse
-import json
 
 
 class ViewTests(TestCase):
@@ -156,7 +155,7 @@ class ViewTests(TestCase):
         self.assertIn("user_profile", response.context)
         self.assertIn("favorite_loc", response.context)
 
-    def test_logoutUser_view(self):
+    def test_logout_user_view(self):
         self.client.login(username=self.test_username, password=self.test_password)
         url = reverse("logout")
         response = self.client.get(url)
@@ -170,8 +169,7 @@ class ViewTests(TestCase):
 class TripViewsTest(TestCase):
     def setUp(self):
         self.client = Client()
-        CampUser = get_user_model()
-        self.user = CampUser.objects.create_user(
+        self.user = get_user_model().objects.create_user(
             username="testuser", password="testpass"
         )
         self.user_profile = self.user.userprofile
@@ -294,7 +292,7 @@ class TripViewsTest(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, self.facility.name)
         self.assertContains(response, "Tent")
-    
+
     def test_trip_edit_view(self):
         trip = TripDetails.objects.create(
         user=self.user_profile,

@@ -80,7 +80,7 @@
                                 <form action="{% url 'delete_facility' campsite.f_id %}" method="POST" style="display: inline;">
                                     {% csrf_token %}
                                     <button type="submit" class="btn btn-danger">
-                                        <i class="fas fa-trash-alt"></i> Delete 
+                                        <i class="fas fa-trash-alt"></i> Delete
                                     </button>
                                 </form>
                             </div>
@@ -112,17 +112,17 @@
                     <strong>To:</strong> {{ trip.end_date }}<br>
                     <strong>People:</strong> {{ trip.number_of_people }}
                   </p>
-        
+
                   <!-- Buttons for View Trip, Edit Trip, and Delete Trip -->
                   <div class="d-flex justify-content-center gap-2 mt-3">
                     <!-- View Trip Button -->
                     <a href="{% url 'trip_detail' trip.id %}" class="btn btn-info">
                       <i class="fas fa-info-circle"></i> View Trip
                     </a>
-        
+
                     <!-- Edit Trip Button -->
-                    <button 
-                      type="button" 
+                    <button
+                      type="button"
                       class="btn btn-success edit-trip-btn"
                       data-toggle="modal"
                       data-target="#editTripModal"
@@ -133,12 +133,12 @@
                       data-selected-facilities='[{% for f in trip.facility.all %}{{ f.id }}{% if not forloop.last %},{% endif %}{% endfor %}]'>
                       <i class="fas fa-edit"></i> Edit Trip
                     </button>
-        
+
                     <!-- Delete Trip Form -->
                     <form method="post" action="{% url 'cancel_trip' %}?trip_id={{ trip.id }}" style="display: inline;">
                       {% csrf_token %}
                       <button type="submit" class="btn btn-danger">
-                        <i class="fas fa-trash-alt"></i> Delete 
+                        <i class="fas fa-trash-alt"></i> Delete
                       </button>
                     </form>
                   </div>
@@ -276,17 +276,17 @@
   $(document).ready(function(){
       $('.lets-pack-btn').click(function(){
           var facilityId = $(this).data('facility-id');
-  
+
           // Set the form action (optional – depends on your backend setup)
           $('#tripForm').attr('action', '/trip/create/' + facilityId + '/');
-  
+
           // Uncheck all checkboxes and make them visible again
           $('#facility-checkboxes input[type="checkbox"]').prop('checked', false).closest('label').show();
-  
+
           // Hide the selected facility so it can't be selected again
           $('#facility-checkboxes input[value="' + facilityId + '"]').closest('label').hide();
       });
-  
+
       // Collect selected facilities on submit
       $('#tripForm').on('submit', function() {
           var selected = [];
@@ -295,7 +295,7 @@
           });
           $('#facility_ids').val(selected.join(','));
       });
-  
+
       // Edit Trip button clicked – populate modal
       $('.edit-trip-btn').on('click', function () {
           const tripId = $(this).data('trip-id');
@@ -303,34 +303,34 @@
           const endDate = $(this).data('end-date');
           const numberOfPeople = $(this).data('number-of-people');
           const selectedFacilities = $(this).data('selected-facilities').toString().split(',');
-  
+
           $('#edit_trip_id').val(tripId);
           $('#edit_start_date').val(startDate);
           $('#edit_end_date').val(endDate);
           $('#edit_number_of_people').val(numberOfPeople);
-  
+
           // Reset all checkboxes
           $('#edit-facility-checkboxes input[type="checkbox"]').prop('checked', false);
-  
+
           // Check previously selected facilities
           selectedFacilities.forEach(function (id) {
               $('#edit-facility-checkboxes input[value="' + id + '"]').prop('checked', true);
           });
-  
+
           // Set the form action dynamically
           $('#editTripForm').attr('action', `/trip/edit/${tripId}/`);
       });
-  
+
       // On edit form submit, collect selected checkboxes into a hidden input
       $('#editTripForm').on('submit', function () {
           var selected = [];
           $('#edit-facility-checkboxes input[type="checkbox"]:checked').each(function () {
               selected.push($(this).val());
           });
-  
+
           // Remove any existing hidden input
           $('#editTripForm input[name="edit_facilities"]').remove();
-  
+
           // Add new hidden input with comma-separated values
           $('<input>').attr({
               type: 'hidden',
@@ -340,5 +340,5 @@
       });
   });
   </script>
-  
+
   {% endblock %}
