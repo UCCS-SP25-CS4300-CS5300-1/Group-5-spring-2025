@@ -36,25 +36,19 @@ from .utils import *
 def index(request):
     return render(request, "index.html")
 
-
-# view for search bar function
+#ABI UPDATED THIS
 def search_view(request):
-    # Get location from search bar
-    query = request.GET.get("q")
-
-    # get user preferences
-    # this is done by accessing the applyFilters id of the switch on the html page,
-    # getting its value, and testing if its equal to "on"; false means no, true means yes
+    query = request.GET.get("q")  # location name input
     apply_filters = request.GET.get("applyFilters") == "on"
-
     campsites = []
 
-    # if user input ok, search facilities based on query
-    # this calls search_facilities function in utils.py, which makes the API request.
     if query:
-        campsites = search_facilities(
-            query, user=request.user if apply_filters else None
-        )
+        lat, lon = geocode_location(query)
+        if lat and lon:
+            campsites = search_facilities(lat=lat, lon=lon, user=request.user if apply_filters else None)
+        else:
+            # fallback: no geocode result, maybe use keyword search
+            campsites = search_facilities(location=query, user=request.user if apply_filters else None)
 
     return render(
         request,

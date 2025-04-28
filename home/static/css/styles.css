@@ -52,6 +52,10 @@ h1 {
     font-size: 40pt;
 }
 
+h3 {
+    font-size: 200pt;
+}
+
 .header-bg {
     background: url('../images/cm_bg_v3.png') no-repeat center center;
     background-size: cover;

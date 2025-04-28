@@ -12,88 +12,88 @@ from .models import *
 RIDB_API_KEY = "3d213c37-c624-440f-aec2-68ac2728b395"
 
 
-# THIS NEEDS TO BE FIXED, RIGHT NOW, LOCATION IS ACTUALLY KEYWORD: HAVE TO COMPROMISE, MAKE USER INPUT STATE AS WELL FOR QUERY?
-# THEN HAVE TO PARSE QUERY... OR MAYBE INCORPORATE FILTERS? FORCE STATE AND RADIUS PARAMETERS... THEN USER ENTERS WHATEVER INTO SEARCH
-# returns all campsite based on user entered location (& later, radius)
-# for search/landing page
-def search_facilities(location, user, radius=5):
-    """Fetch campsites from RIDB API based on user location."""
-    # get base url based on what we want from api: in this case, facilities
+#THIS IS SO WE CAN USE LOCATION INSTEAD OF KEYWORD 
+def geocode_location(location_name):
+    """Convert a location name to latitude and longitude using OpenStreetMap."""
+    url = "https://nominatim.openstreetmap.org/search"
+    params = {
+        "q": location_name,
+        "format": "json",
+        "limit": 1,
+    }
+    response = requests.get(url, params=params, headers={"User-Agent": "campmate-app"})
+
+    if response.status_code == 200:
+        data = response.json()
+        if data:
+            lat = float(data[0]["lat"])
+            lon = float(data[0]["lon"])
+            return lat, lon
+    return None, None
+
+
+#ABI UPDATED THIS FUNCTION
+def search_facilities(lat=None, lon=None, location=None, user=None, radius=50):
+    """Fetch campsites from RIDB API based on latitude/longitude or fallback to location keyword."""
     base_url = "https://ridb.recreation.gov/api/v1/facilities"
 
-    # define parameters; query is the criteria of which campsites are searched by
-    # will add in radius later (this will be a filter for search bar; radius is a param
-    # that will correspond to the filter mile radius; for now, radius isnt user input)
     params = {
-        "query": location,  # City or ZIP code
-        "limit": 10,  # Limit results
         "apikey": RIDB_API_KEY,
+        "limit": 50,   # More results if you want! or adjust
         "radius": radius,
     }
 
-    # get response from API
+    if lat is not None and lon is not None:
+        params["latitude"] = lat
+        params["longitude"] = lon
+    elif location:
+        params["query"] = location
+
     response = requests.get(base_url, params=params)
 
-    # this is based on API documentation -- a successful response code is 200
-    # if response was successful, return the data
-    if response.status_code == 200:
-        # RECDATA is the title for the response data
-        # will be returned in the form of a list of dictionaries
-        facilities = response.json().get("RECDATA", [])  # List of campsites
-
-        # apply user preferences as filter IF user is authenticated
-        if user and user.is_authenticated:
-
-            try:
-                # first, get user preferences
-                preferences = user.preferences
-
-                # first, get reservable attribute, and filter results based on preference
-                if preferences.reservable:
-                    facilities = [
-                        facility
-                        for facility in facilities
-                        if facility.get(
-                            "Reservable", False
-                        )  # default is false if there is no data available
-                    ]
-
-                # facilities now contains results that are relevant to the user preference for reservable
-                # now, get user preferences based on facility type; do this by appending appropriate type
-                # to list as filter through user preferences
-                selected_types = []
-                if preferences.campground:
-                    selected_types.append("Campground")
-                if preferences.rangerstation:
-                    selected_types.append("Ranger Station")
-                if preferences.hotel:
-                    selected_types.append("Hotel")
-                if preferences.trail:
-                    selected_types.append("Trail")
-                if preferences.facility:
-                    selected_types.append("Facility")
-
-                # if there are user preferences for facility types (list isnt empty), filter again
-                # according to preferences
-                # if facility has matching type from selected_types list, keep in list
-                if selected_types:
-                    facilities = [
-                        facility
-                        for facility in facilities
-                        if any(
-                            f_type in facility["FacilityTypeDescription"]
-                            for f_type in selected_types
-                        )
-                    ]
-
-            # take into account if user preferences don't exist
-            except UserPreferences.DoesNotExist:
-                pass
-
-        return facilities
-    else:
-
+    if response.status_code != 200:
         return []
+
+    facilities = response.json().get("RECDATA", [])
+
+    # Now apply user preferences if logged in
+    if user and user.is_authenticated:
+        try:
+            preferences = user.preferences
+
+            # Filter by reservable
+            if preferences.reservable:
+                facilities = [
+                    facility for facility in facilities
+                    if facility.get("Reservable", False)
+                ]
+
+            # Filter by preferred types
+            selected_types = []
+            if preferences.campground:
+                selected_types.append("Campground")
+            if preferences.rangerstation:
+                selected_types.append("Ranger Station")
+            if preferences.hotel:
+                selected_types.append("Hotel")
+            if preferences.trail:
+                selected_types.append("Trail")
+            if preferences.facility:
+                selected_types.append("Facility")
+
+            if selected_types:
+                facilities = [
+                    facility for facility in facilities
+                    if any(
+                        t in facility.get("FacilityTypeDescription", "")
+                        for t in selected_types
+                    )
+                ]
+        except UserPreferences.DoesNotExist:
+            pass
+
+    return facilities
+
 
 
 # returns a single facility based on the id.
