@@ -1,7 +1,7 @@
 import unittest
 from unittest.mock import MagicMock, patch
 
-from home.models import *
+from home.models import CampUser, UserPreferences
 from home.utils import (
     return_facility_address,
     return_facility_detail,
@@ -138,12 +138,12 @@ class TestUtils(unittest.TestCase):
         self.assertEqual(filtered[0]["FacilityTypeDescription"], "Campground")
         self.assertEqual(filtered[0]["FacilityID"], "123")
         self.assertEqual(filtered[0]["FacilityName"], "Mock Facility One")
-        self.assertTrue(filtered[0]["Reservable"] == True)
+        self.assertTrue(filtered[0]["Reservable"])
         # further test: second result should be Mock Facility Three: reservable facility
         self.assertEqual(filtered[1]["FacilityTypeDescription"], "Facility")
         self.assertEqual(filtered[1]["FacilityID"], "789")
         self.assertEqual(filtered[1]["FacilityName"], "Mock Facility Three")
-        self.assertTrue(filtered[1]["Reservable"] == True)
+        self.assertTrue(filtered[1]["Reservable"])
 
 
 if __name__ == "__main__":
