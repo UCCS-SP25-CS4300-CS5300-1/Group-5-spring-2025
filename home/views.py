@@ -2,6 +2,7 @@ import json
 import re
 from datetime import datetime
 import openai
+from openai.error import OpenAIError
 from django.contrib.auth import logout
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse, JsonResponse
@@ -219,10 +220,9 @@ def create_trip_async(request, facility_id):
 
         form = TripDetailsForm(request.POST)
         if form.is_valid():
-            trip_data = form.cleaned_data
-            start_date = trip_data["start_date"]
-            end_date = trip_data["end_date"]
-            number_of_people = trip_data["number_of_people"]
+            start_date = form.cleaned_data["start_date"]
+            end_date = form.cleaned_data["end_date"]
+            number_of_people = form.cleaned_data["number_of_people"]
 
             facility_names = ", ".join(
                 [facility.name for facility in selected_facility]
@@ -242,7 +242,7 @@ def create_trip_async(request, facility_id):
                     temperature=0.5,
                 )
                 packing_list = ai_response.choices[0].message.content.strip()
-            except Exception as e:
+            except OpenAIError as e:
                 print("OpenAI API error:", e)  # Log the error for debugging
                 packing_list = "Tent, sleeping bag, food, water, flashlight"  # fallback
 
@@ -263,8 +263,8 @@ def create_trip_async(request, facility_id):
 
             # Return the URL for the trip preview page
             return redirect("trip_preview")
-        else:
-            return JsonResponse({"success": False, "error": form.errors.as_json()})
+
+        return JsonResponse({"success": False, "error": form.errors.as_json()})
     return JsonResponse({"success": False, "error": "Invalid request"})
 
 
@@ -328,12 +328,6 @@ def edit_trip(request, trip_id):
     return render(request, "edit_trip.html", {"trip": trip})
 
 
-@login_required
-def trip_detail(request, trip_id):
-    trip = get_object_or_404(TripDetails, id=trip_id)
-    return render(request, "users/trip_details.html", {"trip": trip})
-
-
 @csrf_exempt
 def chatbot_view(request):
     if request.method == "POST":
@@ -342,7 +336,7 @@ def chatbot_view(request):
 
         # Construct smart prompt with instruction for follow-ups
         prompt = f"""You are a helpful camping trip assistant. The user asked: "{user_message}"
-        First, give a helpful, concise answer. Then, suggest 2-3 follow-up questions the user might ask next. 
+        First, give a helpful, concise answer. Then, suggest 2-3 follow-up questions the user might ask next.
         List them clearly under the heading "Follow-up questions:", like this:
                 Follow-up questions:
                 - Question 1
