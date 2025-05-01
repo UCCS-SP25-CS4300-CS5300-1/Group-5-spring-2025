@@ -1,21 +1,19 @@
 from calendar import HTMLCalendar
-from datetime import date
-
+from datetime import date, datetime, timedelta
 import requests
 from django.conf import settings
 from django.templatetags.static import static
 from django.urls import reverse
+from .models import UserPreferences
 
-from .models import *
 
 # this is my api key for RIDB
 RIDB_API_KEY = "3d213c37-c624-440f-aec2-68ac2728b395"
 
-
-# THIS NEEDS TO BE FIXED, RIGHT NOW, LOCATION IS ACTUALLY KEYWORD: HAVE TO COMPROMISE, MAKE USER INPUT STATE AS WELL FOR QUERY?
-# THEN HAVE TO PARSE QUERY... OR MAYBE INCORPORATE FILTERS? FORCE STATE AND RADIUS PARAMETERS... THEN USER ENTERS WHATEVER INTO SEARCH
-# returns all campsite based on user entered location (& later, radius)
-# for search/landing page
+"""
+returns all campsite based on user entered location (& later, radius)
+for search/landing page
+"""
 def search_facilities(location, user, radius=5):
     """Fetch campsites from RIDB API based on user location."""
     # get base url based on what we want from api: in this case, facilities
@@ -32,7 +30,7 @@ def search_facilities(location, user, radius=5):
     }
 
     # get response from API
-    response = requests.get(base_url, params=params)
+    response = requests.get(base_url, params=params, timeout=20)
 
     # this is based on API documentation -- a successful response code is 200
     # if response was successful, return the data
@@ -58,8 +56,8 @@ def search_facilities(location, user, radius=5):
                         )  # default is false if there is no data available
                     ]
 
-                # facilities now contains results that are relevant to the user preference for reservable
-                # now, get user preferences based on facility type; do this by appending appropriate type
+                # facilities contains results relevant to the user preference for reservable
+                # now get user pref based on facility type; do this by appending appropriate type
                 # to list as filter through user preferences
                 selected_types = []
                 if preferences.campground:
@@ -91,13 +89,10 @@ def search_facilities(location, user, radius=5):
                 pass
 
         return facilities
-    else:
 
-        return []
+    return []
 
-
-# returns a single facility based on the id.
-# this is for a facility detail page.
+# returns a single facility based on the id. this is for a facility detail page.
 def return_facility_detail(facility_id):
 
     # get base url based on what we want from api: in this case, facilities/facility_id
@@ -107,21 +102,18 @@ def return_facility_detail(facility_id):
     params = {"apikey": RIDB_API_KEY}
 
     # get response from API
-    response = requests.get(base_url, params=params)
+    response = requests.get(base_url, params=params, timeout=20)
 
     # this is based on API documentation -- a successful response code is 200
     # if response was successful, return the data
     if response.status_code == 200:
         return response.json()
-    else:
-        return {}
+    return {}
 
-
-# returns facility address based on facility id as a string
-# this is for the facility detail page
+# returns facility address based on facility id as a string. this is for the facility detail page
 def return_facility_address(facility_id):
 
-    # get base url based on what we want from api: in this case, /facilities/{facilityId}/facilityaddresses
+    # get base url based on what we want from api
     base_url = (
         f"https://ridb.recreation.gov/api/v1/facilities/{facility_id}/facilityaddresses"
     )
@@ -130,15 +122,14 @@ def return_facility_address(facility_id):
     params = {"apikey": RIDB_API_KEY}
 
     # get response from API
-    response = requests.get(base_url, params=params)
+    response = requests.get(base_url, params=params, timeout=20)
 
     # this is based on API documentation -- a successful response code is 200
     # if response was successful, return the data
     if response.status_code == 200:
         try:
-            # JSON data in the form City:... AddressStateCode:...
-            # want to access the URL attribute, so thats why syntax response.json().get("RECDATA", [{}])[0].get("City") is done
-            # we do this as an exception because the data may return no data with
+            # get city, state, address
+            # do this as an exception because the data may return no data with
             # a successful response code still, so theres no index to index to; hence IndexError
             city = response.json().get("RECDATA", [{}])[0].get("City")
             state = response.json().get("RECDATA", [{}])[0].get("AddressStateCode")
@@ -156,7 +147,6 @@ def return_facility_address(facility_id):
 
 # returns facility website url as a string
 # if no url, returns empty string
-# needs own def since grabbing the url consists of diff request url
 def return_facility_url(facility_id):
 
     # get base url based on what we want from api: in this case, facility id and link
@@ -166,13 +156,12 @@ def return_facility_url(facility_id):
     params = {"facilityID": facility_id, "apikey": RIDB_API_KEY}
 
     # get response from API
-    response = requests.get(base_url, params=params)
+    response = requests.get(base_url, params=params, timeout=20)
 
     # this is based on API documentation -- a successful response code is 200
     # if response was successful, return the data
     if response.status_code == 200:
         # get facility url
-        # JSON data in the form EntityLinkID:... LinkType:... ... URL:
         # want to access the URL attribute, so thats why syntax url[0].get("URL") is done
         # we do this as an exception because the return_facility_url may return no data with
         # a successful response code still, so theres no index to index to; hence IndexError
@@ -183,17 +172,11 @@ def return_facility_url(facility_id):
             url = ""
 
         return url
+    return {}
 
-    else:
-        return {}
-
-
-# calendar stuff
-# create a custom class based off python's built-in html calendar
-# note: i wanted to incorporate bootstrap into the html calendar, so i have to override the methods of the class in order to have
-# bootstrap formatting.
+# returns a html/bootstrap calendar
 # based off this documentation: https://docs.python.org/3/library/calendar.html
-# code thats overwritten can be found here https://github.com/python/cpython/blob/3.13/Lib/calendar.py
+# orig code found here https://github.com/python/cpython/blob/3.13/Lib/calendar.py
 class MyHTMLCalendar(HTMLCalendar):
     def __init__(self, trips, year, month):
         super().__init__()
@@ -201,11 +184,9 @@ class MyHTMLCalendar(HTMLCalendar):
         self.year = year
         self.month = month
 
-    """
-    Return a string representing a single day. if day is 0, return a string representing empty day (for days bordering or trailing months) 
-    Weekday parameter is unused. 
-    """
-
+    # Return a string representing a single day. if day is 0, return a string representing empty day
+    # (for days bordering or trailing months)
+    # Weekday parameter is unused.
     def formatday(self, day, weekday):
 
         # if day is NOT a bordering day (day of past or next month)
@@ -217,108 +198,35 @@ class MyHTMLCalendar(HTMLCalendar):
                     # have to do these
                     trip_url = reverse("trip_detail", args=[trip.id])
                     img_url = static("images/cm.png")
-                    return f'<td class="day-trip table-light text-center">{day} <br> <a href="{trip_url}"><img src="{img_url}"  width="60" height="60"></a> </td>'
+                    return (
+                        f'<td class="day-trip table-light text-center">{day}'
+                        f'<br> <a href="{trip_url}"><img src="{img_url}"'
+                        f' width="60" height="60"></a> </td>'
+                    )
             # normal weekday, no trip
             return f'<td class="table-light text-center">{day}</td>'
         # bordering day
         return '<td class="table-secondary"></td>'
 
-    """
-    Return a string representing a single week with no newline. uses formatday func to do this, iterating through all days in a week
-    """
-
+    # Return a string representing a single week with no newline
     def formatweek(self, theweek):
         week_html = "".join(self.formatday(d, wd) for d, wd in theweek)
         return f"<tr>{week_html}</tr>"
 
-    """
-    Return a month's calendar in a multiline string (bootstrap table)
-    withyear=True means the year will be included in the output
-    """
-
-    def formatmonth(self, withyear=True):
+    # Return a month's calendar in a multiline string (bootstrap table)
+    # withyear=True means the year will be included in the output
+    def formatmonth(self, theyear=None, themonth=None, withyear=True):
         # this is how the whole table calendar itself is formated
-        # small, bordered, and color changes if hovering above row (might change later)
-        cal = f'<table class="table table-bordered table-sm">'
+        # small, bordered
+        cal = '<table class="table table-bordered table-sm">'
         cal += f"{self.formatmonthname(self.year, self.month, withyear=withyear)}"
         # first calendar table row that shows month and year
         cal += f"{self.formatweekheader()}"
-        # monthdays2calendar returns a list of the weeks in the month of the year as full weeks; weeks are lists of seven tuples of day numbers and
-        # weekday numbers
+        # monthdays2calendar returns list of weeks; 7 tuples of day #s and weekdays
         for week in self.monthdays2calendar(self.year, self.month):
             cal += self.formatweek(week)
         cal += "</table>"
         return cal
-
-
-# import requests
-
-# def fetch_weather(lat, lon, start_date, end_date):
-#     """Get weather forecast using Open-Meteo API."""
-#     url = (
-#         f"https://api.open-meteo.com/v1/forecast"
-#         f"?latitude={lat}&longitude={lon}"
-#         f"&start_date={start_date}&end_date={end_date}"
-#         f"&daily=temperature_2m_max,temperature_2m_min,weathercode"
-#         f"&timezone=auto"
-#     )
-#     res = requests.get(url)
-#     if res.status_code != 200:
-#         return []
-
-#     data = res.json()
-
-#     code_map = {
-#         0: "Clear sky",
-#         1: "Mainly clear",
-#         2: "Partly cloudy",
-#         3: "Overcast",
-#         45: "Fog",
-#         48: "Depositing rime fog",
-#         51: "Light drizzle",
-#         53: "Moderate drizzle",
-#         55: "Dense drizzle",
-#         56: "Light freezing drizzle",
-#         57: "Dense freezing drizzle",
-#         61: "Slight rain",
-#         63: "Moderate rain",
-#         65: "Heavy rain",
-#         66: "Light freezing rain",
-#         67: "Heavy freezing rain",
-#         71: "Slight snow fall",
-#         73: "Moderate snow fall",
-#         75: "Heavy snow fall",
-#         77: "Snow grains",
-#         80: "Slight rain showers",
-#         81: "Moderate rain showers",
-#         82: "Violent rain showers",
-#         85: "Slight snow showers",
-#         86: "Heavy snow showers",
-#         95: "Thunderstorm",
-#         96: "Thunderstorm with slight hail",
-#         99: "Thunderstorm with heavy hail",
-#     }
-
-#     forecast = []
-#     for date, tmax, tmin, code in zip(
-#         data['daily']['time'],
-#         data['daily']['temperature_2m_max'],
-#         data['daily']['temperature_2m_min'],
-#         data['daily']['weathercode']
-#     ):
-#         forecast.append({
-#             'date': date,
-#             'temp_max': round(tmax * 9/5 + 32),
-#             'temp_min': round(tmin * 9/5 + 32),
-#             'condition': code_map.get(code, "Unknown")
-#         })
-
-#     return forecast
-
-
-from datetime import datetime, timedelta
-
-import requests
 
 
 def fetch_weather(lat, lon, start_date, end_date):

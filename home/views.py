@@ -1,19 +1,12 @@
-# Test, for calendar feature
-import calendar
 import json
-import os
 import re
 from datetime import datetime
-
 import openai
-import requests
 from django.contrib.auth import logout
 from django.contrib.auth.decorators import login_required
-from django.contrib.auth.forms import UserCreationForm
 from django.http import HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.template.loader import render_to_string
-from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
 from weasyprint import HTML
 
@@ -27,9 +20,9 @@ from home.utils import (
     search_facilities,
 )
 
-from .forms import *
-from .models import *
-from .utils import *
+from .forms import CampUserCreationForm, UserPreferenceForm, TripDetailsForm
+from .models import CampUser, UserProfile, TripDetails
+from .utils import UserPreferences, MyHTMLCalendar, settings
 
 
 # Create your views here.
@@ -64,7 +57,7 @@ def search_view(request):
 
 
 # view for facility detail
-# returns a facility (called campsite) data type which attributes can be accessed by the dot operator
+# returns a facility data type which attributes can be accessed by the dot operator
 # attributes can be found in RIDB API Facility schema
 # exp: get facility name: campsite.FacilityName
 # also returns facility address and url
@@ -89,11 +82,11 @@ def save_facility(request, facility_id):
     # Im getting the data from
     user = CampUser.objects.get(username=request.user.username)
 
-    # make API call to get facility: this returns a facility data type that we can extract attribute info from by getting value from key
+    # make API call to get facility (utils.py file)
     testfacility = return_facility_detail(facility_id)
     # get facility details from facility data type
     name = testfacility["FacilityName"]
-    type = testfacility["FacilityTypeDescription"]
+    f_type = testfacility["FacilityTypeDescription"]
     acessibility_txt = testfacility["FacilityAccessibilityText"]
     ada = testfacility["FacilityAdaAccess"]
     phone = testfacility["FacilityPhone"]
@@ -103,13 +96,13 @@ def save_facility(request, facility_id):
     url = return_facility_url(facility_id)
     location = return_facility_address(facility_id)
 
-    # create the saved facility (or get it if it already exists in user profile) [Updated to work long & lat for weather]
+    # create the saved facility (or get it if it already exists in user profile)
     facility, _ = Facility.objects.update_or_create(
         f_id=facility_id,
         defaults={
             "name": name,
             "location": location,
-            "type": type,
+            "type": f_type,
             "accessibility_txt": acessibility_txt,
             "ada_accessibility": ada,
             "phone": phone,
@@ -155,7 +148,7 @@ def user_profile(request):
     favorite_loc = prof.favorited_loc.all()
 
     # retrieve user preferences, or create them if they don't exist yet
-    preferences, created = UserPreferences.objects.get_or_create(user=request.user)
+    preferences, _ = UserPreferences.objects.get_or_create(user=request.user)
 
     # associate trip details with the user
     trips = TripDetails.objects.filter(user=prof)
@@ -172,9 +165,8 @@ def user_profile(request):
     return render(request, "users/profile.html", context)
 
 
-# sorry Zach, had to make own manual view for logging out user. couldnt figure out why orig code not working
 # log out the user
-def logoutUser(request):
+def logout_user(request):
     logout(request)
     # after logging out returns user to landing page
     return redirect("index")
@@ -187,7 +179,7 @@ def edit_preferences(request):
     user = request.user
 
     # get users preferences if they exist; if they dont, create them
-    preferences, created = UserPreferences.objects.get_or_create(user=user)
+    preferences, _ = UserPreferences.objects.get_or_create(user=user)
 
     if request.method == "POST":
         form = UserPreferenceForm(request.POST, instance=preferences)
@@ -208,6 +200,7 @@ def delete_facility(request, facility_id):
     if request.method == "POST":
         facility.delete()
         return redirect("user_profile")
+    return redirect("user_profile")
 
 
 @login_required
@@ -235,8 +228,9 @@ def create_trip_async(request, facility_id):
                 [facility.name for facility in selected_facility]
             )
             prompt = (
-                f"Generate a packing list for {number_of_people} people camping at {facility_names} "
-                f"from {start_date} to {end_date}. Focus on essentials. Consider the weather at this time and location. "
+                f"Generate a packing list for {number_of_people} people camping at {facility_names}"
+                f" from {start_date} to {end_date}. Focus on essentials. "
+                f"Consider the weather at this time and location. "
                 f"Give response in a comma separated list"
             )
 
@@ -347,7 +341,9 @@ def chatbot_view(request):
         user_message = body.get("message", "")
 
         # Construct smart prompt with instruction for follow-ups
-        prompt = f"""You are a helpful camping trip assistant. The user asked: "{user_message}" First, give a helpful, concise answer. Then, suggest 2-3 follow-up questions the user might ask next. List them clearly under the heading "Follow-up questions:", like this:
+        prompt = f"""You are a helpful camping trip assistant. The user asked: "{user_message}"
+        First, give a helpful, concise answer. Then, suggest 2-3 follow-up questions the user might ask next. 
+        List them clearly under the heading "Follow-up questions:", like this:
                 Follow-up questions:
                 - Question 1
                 - Question 2
@@ -435,8 +431,9 @@ def calendar_view(request, year=None, month=None):
     now = datetime.now()
     year = year or now.year
     month = month or now.month
-    # ah, a really silly way to resolve index error if user enters calendar/<year>/<some#waymorethan12> in searchbar
-    month = month % 12
+    # simple way to prevent index error
+    if month != 12:
+        month = month % 12
     trips = TripDetails.objects.filter(user=request.user.userprofile)
 
     # very naive logic for grabbing the next month and corresponding year

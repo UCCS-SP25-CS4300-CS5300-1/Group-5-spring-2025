@@ -35,7 +35,7 @@ urlpatterns = [
     path("register/", views.register_view, name="register"),
     path("profile/", views.user_profile, name="user_profile"),
     path("login/", auth_views.LoginView.as_view(), name="login"),
-    path("logout/", views.logoutUser, name="logout"),
+    path("logout/", views.logout_user, name="logout"),
     path("chatbot/", views.chatbot_view, name="chatbot"),
     path("calendar/", views.calendar_view, name="current_calendar"),
     path(
