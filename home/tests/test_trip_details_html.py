@@ -5,13 +5,13 @@ from django.contrib.auth import get_user_model
 from django.test import TestCase
 from django.urls import reverse
 
-from home.models import Facility, TripDetails, UserProfile
+from home.models import Facility, TripDetails
 
 
 class TripDetailTemplateTests(TestCase):
     def setUp(self):
-        CampUser = get_user_model()
-        self.user = CampUser.objects.create_user(
+        camp_user = get_user_model()
+        self.user = camp_user.objects.create_user(
             username="testuser", password="password123"
         )
         self.user_profile = self.user.userprofile  # auto-created from signals

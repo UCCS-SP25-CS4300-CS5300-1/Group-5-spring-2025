@@ -361,7 +361,7 @@ def chatbot_view(request):
 
             return JsonResponse({"reply": full_reply, "followups": cleaned_followups})
 
-        except Exception as e:
+        except OpenAIError as e:
             return JsonResponse({"reply": f"Sorry, something went wrong: {str(e)}"})
 
     return JsonResponse({"reply": "This endpoint only accepts POST requests."})
