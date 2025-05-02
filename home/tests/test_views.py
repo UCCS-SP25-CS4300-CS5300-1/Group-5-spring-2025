@@ -365,7 +365,8 @@ class CalendarViewTest(TestCase):
         # special html format for calendar day based on trip
         needle = (
             f'<td class="day-trip table-light text-center">{self.trip.start_date.day} <br>'
-            f'<a href="/trip/{self.trip.id}/"><img src="/static/images/cm.png"  width="60" height="60"></a> </td>'
+            f'<a href="/trip/{self.trip.id}/">'
+            f'<img src="/static/images/cm.png"  width="60" height="60"></a> </td>'
         )
         haystack = response.content.decode()
         self.assertInHTML(needle, haystack)
