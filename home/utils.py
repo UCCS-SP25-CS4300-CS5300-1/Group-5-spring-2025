@@ -31,7 +31,7 @@ def geocode_location(location_name):
             return lat, lon
     if response.status_code != 200 or not data:
         # Log an error message
-        logger.error(f"Geocoding failed for location: {location_name}")u
+        print(f"Geocoding failed for location: {location_name}")
         return None, None
 
 
