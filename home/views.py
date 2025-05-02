@@ -23,7 +23,7 @@ from home.utils import (
 
 from .forms import CampUserCreationForm, UserPreferenceForm, TripDetailsForm
 from .models import CampUser, UserProfile, TripDetails
-from .utils import UserPreferences, MyHTMLCalendar, settings
+from .utils import UserPreferences, MyHTMLCalendar, settings, geocode_location
 
 
 # Create your views here.
@@ -115,7 +115,7 @@ def save_facility(request, facility_id):
             "url": url,
             "latitude": testfacility.get("FacilityLatitude"),
             "longitude": testfacility.get("FacilityLongitude"),
-            "image_url": image_url, 
+            "image_url": image_url,
         },
     )
 
@@ -248,7 +248,7 @@ def create_trip_async(request, facility_id):
                 items = packing_list.split(",")
                 capitalized_items = [item.strip().capitalize() for item in items]
                 packing_list = ", ".join(capitalized_items)
-            except OpenAIError as e: 
+            except OpenAIError as e:
                 print("OpenAI API error:", e)  # Log the error for debugging
                 packing_list = "Tent, sleeping bag, food, water, flashlight"  # fallback
 
