@@ -33,13 +33,13 @@ def geocode_location(location_name):
 
 
 #ABI UPDATED THIS FUNCTION
-def search_facilities(lat=None, lon=None, location=None, user=None, radius=50):
+def search_facilities(lat=None, lon=None, location=None, user=None, radius=100):
     """Fetch campsites from RIDB API based on latitude/longitude or fallback to location keyword."""
     base_url = "https://ridb.recreation.gov/api/v1/facilities"
 
     params = {
         "apikey": RIDB_API_KEY,
-        "limit": 50,   # More results if you want! or adjust
+        "limit": 50,  
         "radius": radius,
     }
 
@@ -55,6 +55,15 @@ def search_facilities(lat=None, lon=None, location=None, user=None, radius=50):
         return []
 
     facilities = response.json().get("RECDATA", [])
+
+
+    for f in facilities:
+        media = f.get("MEDIA", [])
+        if media:
+            primary = next((m for m in media if m.get("IsPrimary")), media[0])
+            f["image_url"] = primary.get("URL")
+        else:
+            f["image_url"] = None
 
     # Now apply user preferences if logged in
     if user and user.is_authenticated:

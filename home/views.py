@@ -96,6 +96,14 @@ def save_facility(request, facility_id):
     reservable = testfacility["Reservable"]
     url = return_facility_url(facility_id)
     location = return_facility_address(facility_id)
+    media = testfacility.get("MEDIA", [])
+    if media:
+        primary = next((m for m in media if m.get("IsPrimary")), media[0])
+        image_url = primary.get("URL")
+    else:
+        image_url = None
+
+
 
     # create the saved facility (or get it if it already exists in user profile) [Updated to work long & lat for weather]
     facility, _ = Facility.objects.update_or_create(
@@ -113,6 +121,7 @@ def save_facility(request, facility_id):
             "url": url,
             "latitude": testfacility.get("FacilityLatitude"),
             "longitude": testfacility.get("FacilityLongitude"),
+            "image_url": image_url, 
         },
     )
 
@@ -230,8 +239,8 @@ def create_trip_async(request, facility_id):
             )
             prompt = (
                 f"Generate a packing list for {number_of_people} people camping at {facility_names} "
-                f"from {start_date} to {end_date}. Focus on essentials. Consider the weather at this time and location. "
-                f"Give response in a comma separated list"
+                f"from {start_date} to {end_date}. Focus on essentials, include quantities. Consider the weather at this time and location. "
+                f"Give response in a comma separated list. "
             )
 
             try:
@@ -242,6 +251,9 @@ def create_trip_async(request, facility_id):
                     temperature=0.5,
                 )
                 packing_list = ai_response.choices[0].message.content.strip()
+                items = packing_list.split(",")
+                capitalized_items = [item.strip().capitalize() for item in items]
+                packing_list = ", ".join(capitalized_items)
             except Exception as e:
                 print("OpenAI API error:", e)  # Log the error for debugging
                 packing_list = "Tent, sleeping bag, food, water, flashlight"  # fallback

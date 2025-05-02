@@ -52,5 +52,34 @@
 }
 
 h3 {
-  font-size: 18pt;
+  font-size: 16pt;
+}
+
+/* Make the card content flex row */
+.facility-content {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+}
+
+/* Style the image */
+.facility-img {
+  width: 100px;
+  height: 100px;
+  object-fit: cover;
+  border-radius: 8px;
+}
+
+/* Make text take the remaining space */
+.facility-text {
+  flex: 1;
+}
+
+/* Tweak card appearance */
+.facility-card {
+  background: #fff;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  padding: 1rem;
+  margin-bottom: 1rem;
 }

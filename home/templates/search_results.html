@@ -15,19 +15,28 @@
       <!-- Scrollable box around all cards -->
       <div class="cards-scrollbox">
         {% for site in campsites %}
-          <div class="facility-card">
-            <!-- Name is now the link -->
-            <h3 class="facility-name">
-              <a href="{% url 'facility_detail' site.FacilityID %}?q={{ query }}">
-                {{ site.FacilityName }}
-              </a>
-            </h3>
-            <p class="facility-type"><strong>Type:</strong> {{ site.FacilityTypeDescription }}</p>
-              <p class="facility-coords">
-                <strong>Reservable:</strong>
-                {{ site.Reservable |yesno:"Yes,No" }}
-              </p>
-          </div>
+            <div class="facility-card">
+                <div class="facility-content">
+                    {% if site.image_url %}
+                        <img src="{{ site.image_url }}"class="facility-img"/>
+                    {% else %}
+                        
+                    {% endif %}
+                    <div class="facility-text">
+                        <!-- Name is now the link -->
+                        <h3 class="facility-name">
+                        <a href="{% url 'facility_detail' site.FacilityID %}?q={{ query }}">
+                            {{ site.FacilityName }}
+                        </a>
+                        </h3>
+                        <p class="facility-type"><strong>Type:</strong> {{ site.FacilityTypeDescription }}</p>
+                        <p class="facility-coords">
+                            <strong>Reservable:</strong>
+                            {{ site.Reservable |yesno:"Yes,No" }}
+                        </p>
+                    </div>
+                </div>
+            </div>
         {% endfor %}
       </div>
   
