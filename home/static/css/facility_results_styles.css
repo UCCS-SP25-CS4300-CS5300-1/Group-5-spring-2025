@@ -1,0 +1,87 @@
+/* Scrollable container */
+.cards-scrollbox{
+  max-height: 500px;       /* adjust as needed */
+  overflow-y: auto;
+  border: 0px solid #105c4a;
+  border-radius: 8px;
+  padding: 0.5rem;
+  margin-bottom: 1rem;
+  margin-left: -1.25rem;
+}
+
+.results-container, .map-container {
+  display: flex;
+  flex-direction: row;
+  gap: 1rem; /* optional spacing */
+}
+
+
+
+/* Tweak card appearance */
+.facility-card {
+  background: #fff;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  padding: 1rem;
+  margin-bottom: 1rem;
+}
+
+
+/* Link styling on the name */
+.facility-card .facility-name a {
+  text-decoration: none;
+  color: #ff930e;
+}
+.facility-card .facility-name a:hover {
+  text-decoration: underline;
+}
+
+/* Type & coords text */
+.facility-card .facility-type,
+.facility-card .facility-coords {
+  margin: 0.25rem 0;
+  font-size: 0.9rem;
+}
+
+/* Ensure the map still spans full width */
+.map-container {
+  height: 500px;
+  width: 100%;
+  border-radius: 10px;
+  margin-top: 1rem;
+  margin-right: -1.25rem;
+ 
+}
+
+h3 {
+  font-size: 16pt;
+}
+
+/* Make the card content flex row */
+.facility-content {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+}
+
+/* Style the image */
+.facility-img {
+  width: 100px;
+  height: 100px;
+  object-fit: cover;
+  border-radius: 8px;
+}
+
+/* Make text take the remaining space */
+.facility-text {
+  flex: 1;
+}
+
+/* Tweak card appearance */
+.facility-card {
+  background: #fff;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  padding: 1rem;
+  margin-bottom: 1rem;
+}

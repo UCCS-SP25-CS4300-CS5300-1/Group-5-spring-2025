@@ -60,8 +60,9 @@ def request_code_review(diff, client):
                     "role": "user",
                     "content": (
                         "Please review the following code for potential issues or improvements: "
-                        "start with giving it a score out of 10, then if you're going to suggest changes please "
-                        "reference the code directly. Please list no more than 3 to 4 items but only if it is necessary:\n"
+                        "start with giving it a score out of 10, then if you're going to "
+                        "suggest changes please reference the code directly."
+                        "Please list no more than 3 to 4 items but only if it is necessary:\n"
                         f"{diff}"
                     ),
                 },

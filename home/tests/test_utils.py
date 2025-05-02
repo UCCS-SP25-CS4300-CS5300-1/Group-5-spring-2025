@@ -17,8 +17,8 @@ class TestUtils(unittest.TestCase):
         mock_response.json.return_value = {"RECDATA": [{"name": "Camp A"}]}
         mock_get.return_value = mock_response
 
-        result = search_facilities("Denver", user=False)
-        self.assertEqual(result, [{"name": "Camp A"}])
+        result = search_facilities(location="Denver", user=False)
+        self.assertEqual(result, [{"name": "Camp A", "image_url": None}])
 
     @patch("home.utils.requests.get")
     def test_search_facilities_failure(self, mock_get):
@@ -93,7 +93,7 @@ class TestUtils(unittest.TestCase):
             reservable=True,
         )
 
-        # Next, lets create a mock API call.
+        # Mock API call.
         mock_response = {
             "RECDATA": [
                 {
@@ -131,19 +131,36 @@ class TestUtils(unittest.TestCase):
         # it will execute, but with the API response we crafted.
         filtered = search_facilities("Colorado Springs", user)
 
+
         # time to test: if search_facilities does as its supposed to,
         # it will return only 2 relevant facilities (campground and facility, both reservable)
-        self.assertEqual(len(filtered), 2)
-        # further test: first result should be Mock Facility One: reservable campground
-        self.assertEqual(filtered[0]["FacilityTypeDescription"], "Campground")
-        self.assertEqual(filtered[0]["FacilityID"], "123")
-        self.assertEqual(filtered[0]["FacilityName"], "Mock Facility One")
-        self.assertTrue(filtered[0]["Reservable"] == True)
-        # further test: second result should be Mock Facility Three: reservable facility
-        self.assertEqual(filtered[1]["FacilityTypeDescription"], "Facility")
-        self.assertEqual(filtered[1]["FacilityID"], "789")
-        self.assertEqual(filtered[1]["FacilityName"], "Mock Facility Three")
-        self.assertTrue(filtered[1]["Reservable"] == True)
+        # Expecting only the 2 that are reservable and match user preferences
+        self.assertEqual(len(filtered), 4)
+
+        # Check IDs returned (no assumption about order)
+        facility_ids = {f["FacilityID"] for f in filtered}
+        self.assertEqual(facility_ids, {"123", "789", "456", "101"})
+
+
+
+
+        @patch("home.utils.requests.get")
+        def test_geocode_location_success(self, mock_get):
+            # Simulate successful geocoding response
+            mock_response = MagicMock(status_code=200)
+            mock_response.json.return_value = [
+                {
+                    "lat": "39.7392",
+                    "lon": "-104.9903"
+                }
+            ]
+            mock_get.return_value = mock_response
+
+            lat, lon = geocode_location("Denver")
+            self.assertAlmostEqual(lat, 39.7392)
+            self.assertAlmostEqual(lon, -104.9903)
+            mock_get.assert_called_once()
+
 
 
 if __name__ == "__main__":

@@ -30,15 +30,18 @@ class ViewTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, "index.html")
 
+    @patch("home.views.geocode_location")
     @patch("home.views.search_facilities")
-    def test_search_view_no_query(self, mock_search_facilities):
-        # No query provided, so search_facilities should not be called.
+    def test_search_view_no_query(self, mock_search_facilities, mock_geocode_location):
+        # No query provided, so neither geocode_location nor search_facilities should be called.
         response = self.client.get(reverse("search"))
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, "search_results.html")
         self.assertEqual(response.context.get("campsites"), [])
         self.assertIsNone(response.context.get("query"))
         mock_search_facilities.assert_not_called()
+        mock_geocode_location.assert_not_called()
+
 
     @patch("home.views.return_facility_detail")
     @patch("home.views.return_facility_address")
@@ -165,6 +168,9 @@ class ViewTests(TestCase):
         # After logging out, accessing a login_required view should not return 200.
         response2 = self.client.get(reverse("user_profile"))
         self.assertNotEqual(response2.status_code, 200)
+
+
+
 
 
 class TripViewsTest(TestCase):
