@@ -6,8 +6,7 @@ from django.db import IntegrityError
 from django.test import TestCase
 from django.urls import reverse
 
-from home.forms import CampUserCreationForm
-from home.models import *
+from home.models import Facility, UserPreferences, TripDetails
 
 
 class FacilityModelTest(TestCase):
@@ -25,7 +24,8 @@ class FacilityModelTest(TestCase):
         }
 
     def test_facility_creation(self):
-        # Test that a Facility instance is created correctly and its __str__ method returns the facility's name.
+        # Test that a Facility instance is created correctly
+        # And its __str__ method returns the facility's name.
         facility = Facility.objects.create(**self.facility_data)
 
         self.assertEqual(facility.name, self.facility_data["name"])
@@ -44,7 +44,8 @@ class FacilityModelTest(TestCase):
         self.assertEqual(facility.description, self.facility_data["description"])
 
     def test_f_id_unique_constraint(self):
-        # Test that the f_id field is unique by attempting to create two facilities with the same f_id.
+        # Test that the f_id field is unique
+        # By attempting to create two facilities with the same f_id.
         Facility.objects.create(**self.facility_data)
         duplicate_data = self.facility_data.copy()
         duplicate_data["name"] = "Another Facility"
@@ -71,7 +72,8 @@ class FacilityModelTest(TestCase):
             facility.full_clean()  # Should not raise a ValidationError.
         except ValidationError:
             self.fail(
-                "Facility.full_clean() raised ValidationError unexpectedly for a valid phone number."
+                "Facility.full_clean() raised ValidationError" \
+                " unexpectedly for a valid phone number."
             )
 
 
@@ -100,6 +102,8 @@ class RegisterTests(TestCase):
 
 class UserPreferencesModelTest(TestCase):
     def setUp(self):
+
+        CampUser = get_user_model()
         # create user
         self.user = CampUser.objects.create_user(
             username="testuser", password="testpassword"
