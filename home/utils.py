@@ -1,6 +1,7 @@
 from calendar import HTMLCalendar
 from datetime import date, datetime, timedelta
 import requests
+from django.conf import settings # pylint: disable=unused-import
 from django.templatetags.static import static
 from django.urls import reverse
 from .models import UserPreferences
