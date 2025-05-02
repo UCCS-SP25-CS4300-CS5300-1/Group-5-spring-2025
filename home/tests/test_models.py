@@ -82,8 +82,8 @@ class UserTests(TestCase):
         # Test user creation and password hashing.
         test_data = {"username": "Testuser", "password": "Password123!"}
 
-        CampUser = get_user_model()
-        user = CampUser.objects.create_user(
+        camp_user = get_user_model()
+        user = camp_user.objects.create_user(
             username=test_data["username"], password=test_data["password"]
         )
 
@@ -103,9 +103,9 @@ class RegisterTests(TestCase):
 class UserPreferencesModelTest(TestCase):
     def setUp(self):
 
-        CampUser = get_user_model()
+        camp_user = get_user_model()
         # create user
-        self.user = CampUser.objects.create_user(
+        self.user = camp_user.objects.create_user(
             username="testuser", password="testpassword"
         )
         # create preferences (default is all True for pref attr)
@@ -135,8 +135,8 @@ class UserPreferencesModelTest(TestCase):
 class TripDetailsModelTests(TestCase):
     def setUp(self):
         # Use custom user model
-        CampUser = get_user_model()
-        self.user = CampUser.objects.create_user(
+        camp_user = get_user_model()
+        self.user = camp_user.objects.create_user(
             username="testuser", password="password"
         )
         self.profile = (
