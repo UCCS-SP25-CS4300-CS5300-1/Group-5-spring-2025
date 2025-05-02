@@ -1,7 +1,7 @@
 import unittest
 from unittest.mock import MagicMock, patch
 
-from home.models import *
+from home.models import CampUser, UserPreferences
 from home.utils import (
     return_facility_address,
     return_facility_detail,
@@ -134,6 +134,7 @@ class TestUtils(unittest.TestCase):
 
         # time to test: if search_facilities does as its supposed to,
         # it will return only 2 relevant facilities (campground and facility, both reservable)
+
         # Expecting only the 2 that are reservable and match user preferences
         self.assertEqual(len(filtered), 4)
 

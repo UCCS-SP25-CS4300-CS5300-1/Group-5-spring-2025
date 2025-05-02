@@ -6,4 +6,5 @@ class HomeConfig(AppConfig):
     name = "home"
 
     def ready(self):
+        # pylint: disable=import-outside-toplevel, unused-import
         import home.signals

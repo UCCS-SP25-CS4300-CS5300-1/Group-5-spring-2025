@@ -5,7 +5,7 @@ from django.contrib.auth import get_user_model
 from django.contrib.auth.forms import UserCreationForm
 from django.forms import ModelForm
 
-from .models import *
+from .models import Facility,UserPreferences
 from .models import TripDetails
 
 
