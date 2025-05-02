@@ -360,9 +360,13 @@ class CalendarViewTest(TestCase):
     def test_trip_appears_in_calendar(self):
         self.client.login(username="testuser", password="testpassword123")
         response = self.client.get(reverse("current_calendar"))
-        # find needle in haystack: this specific line of html should appear if view functions as it should
+        # find needle in haystack:
+        # this specific line of html should appear if view functions as it should
         # special html format for calendar day based on trip
-        needle = f'<td class="day-trip table-light text-center">{self.trip.start_date.day} <br> <a href="/trip/{self.trip.id}/"><img src="/static/images/cm.png"  width="60" height="60"></a> </td>'
+        needle = (
+            f'<td class="day-trip table-light text-center">{self.trip.start_date.day} <br>'
+            f'<a href="/trip/{self.trip.id}/"><img src="/static/images/cm.png"  width="60" height="60"></a> </td>'
+        )
         haystack = response.content.decode()
         self.assertInHTML(needle, haystack)
 
