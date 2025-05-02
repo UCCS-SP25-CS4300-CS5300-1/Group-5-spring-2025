@@ -16,14 +16,16 @@
 }
 
 
-/* Individual card styling */
+
+/* Tweak card appearance */
 .facility-card {
   background: #fff;
-  border: 1px solid #105c4a;
+  border: 1px solid #ccc;
   border-radius: 6px;
-  padding: 0.75rem;
-  margin-bottom: 0.75rem;
+  padding: 1rem;
+  margin-bottom: 1rem;
 }
+
 
 /* Link styling on the name */
 .facility-card .facility-name a {

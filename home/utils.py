@@ -29,7 +29,10 @@ def geocode_location(location_name):
             lat = float(data[0]["lat"])
             lon = float(data[0]["lon"])
             return lat, lon
-    return None, None
+    if response.status_code != 200 or not data:
+        # Log an error message
+        print(f"Geocoding failed for location: {location_name}")
+        return None, None
 
 
 #ABI UPDATED THIS FUNCTION
