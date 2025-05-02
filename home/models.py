@@ -31,6 +31,14 @@ class Facility(models.Model):
     latitude = models.FloatField(null=True, blank=True)
     longitude = models.FloatField(null=True, blank=True)
 
+    image_url = models.URLField(
+        max_length=500,
+        blank=True,
+        null=True,
+        help_text="Primary image URL from RIDB API MEDIA"
+    )
+
+
     def __str__(self):
         return str(self.name)
 
