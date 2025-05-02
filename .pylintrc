@@ -1,7 +1,7 @@
 [MASTER]
 #Skip files we don't want to waste time scanning
 ignore=camp_mate_venv,home.migrations,db.sqlite3,Dockerfile,scripts.code_review,manage.py
-ignore-patterns=camp_mate/docker_settings.py,.*migrations/.*\.py
+ignore-patterns=camp_mate/docker_settings.py
 
 #Load Django plugin to reudce false positives for Django code
 load-plugins=pylint_django
