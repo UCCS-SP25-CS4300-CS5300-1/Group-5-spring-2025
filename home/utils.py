@@ -1,7 +1,6 @@
 from calendar import HTMLCalendar
 from datetime import date, datetime, timedelta
 import requests
-from django.conf import settings
 from django.templatetags.static import static
 from django.urls import reverse
 from .models import UserPreferences
@@ -228,6 +227,18 @@ class MyHTMLCalendar(HTMLCalendar):
         cal += "</table>"
         return cal
 
+WEATHER_CODE_MAP = {
+    0: "Clear sky", 1: "Mainly clear", 2: "Partly cloudy", 3: "Overcast",
+    45: "Fog", 48: "Depositing rime fog", 51: "Light drizzle", 53: "Moderate drizzle",
+    55: "Dense drizzle", 56: "Light freezing drizzle", 57: "Dense freezing drizzle",
+    61: "Slight rain", 63: "Moderate rain", 65: "Heavy rain",
+    66: "Light freezing rain", 67: "Heavy freezing rain",
+    71: "Slight snowfall", 73: "Moderate snowfall", 75: "Heavy snowfall", 77: "Snow grains",
+    80: "Slight rain showers", 81: "Moderate rain showers", 82: "Violent rain showers",
+    85: "Slight snow showers", 86: "Heavy snow showers",
+    95: "Thunderstorm", 96: "Thunderstorm with slight hail", 99: "Thunderstorm with heavy hail",
+}
+
 
 def fetch_weather(lat, lon, start_date, end_date):
     """Get weather forecast using Open-Meteo API."""
@@ -238,48 +249,17 @@ def fetch_weather(lat, lon, start_date, end_date):
         f"&daily=temperature_2m_max,temperature_2m_min,weathercode"
         f"&timezone=auto"
     )
-    res = requests.get(url)
+    res = requests.get(url, timeout=10)
     if res.status_code != 200:
         return []
 
     data = res.json()
 
-    code_map = {
-        0: "Clear sky",
-        1: "Mainly clear",
-        2: "Partly cloudy",
-        3: "Overcast",
-        45: "Fog",
-        48: "Depositing rime fog",
-        51: "Light drizzle",
-        53: "Moderate drizzle",
-        55: "Dense drizzle",
-        56: "Light freezing drizzle",
-        57: "Dense freezing drizzle",
-        61: "Slight rain",
-        63: "Moderate rain",
-        65: "Heavy rain",
-        66: "Light freezing rain",
-        67: "Heavy freezing rain",
-        71: "Slight snowfall",
-        73: "Moderate snowfall",
-        75: "Heavy snowfall",
-        77: "Snow grains",
-        80: "Slight rain showers",
-        81: "Moderate rain showers",
-        82: "Violent rain showers",
-        85: "Slight snow showers",
-        86: "Heavy snow showers",
-        95: "Thunderstorm",
-        96: "Thunderstorm with slight hail",
-        99: "Thunderstorm with heavy hail",
-    }
-
     forecast = []
-    dates_available = data["daily"]["time"]
-    max_date_available = datetime.strptime(dates_available[-1], "%Y-%m-%d").date()
+    max_date_available = datetime.strptime(data["daily"]["time"][-1], "%Y-%m-%d").date()
 
-    for date, tmax, tmin, code in zip(
+
+    for forecast_date, tmax, tmin, code in zip(
         data["daily"]["time"],
         data["daily"]["temperature_2m_max"],
         data["daily"]["temperature_2m_min"],
@@ -287,15 +267,14 @@ def fetch_weather(lat, lon, start_date, end_date):
     ):
         forecast.append(
             {
-                "date": date,
+                "date": forecast_date,
                 "temp_max": round(tmax * 9 / 5 + 32),
                 "temp_min": round(tmin * 9 / 5 + 32),
-                "condition": code_map.get(code, "Unknown"),
+                "condition": WEATHER_CODE_MAP.get(code, "Unknown")
             }
         )
 
     # Fill in unavailable forecast days if trip goes beyond what API returns
-    actual_start = datetime.strptime(start_date, "%Y-%m-%d").date()
     actual_end = datetime.strptime(end_date, "%Y-%m-%d").date()
     current_day = max_date_available + timedelta(days=1)
 
