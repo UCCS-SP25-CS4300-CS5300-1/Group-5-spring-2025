@@ -369,7 +369,7 @@ def generate_packing_list(prompt):
     try:
         openai.api_key = settings.OPENAI_API_KEY
         resp = openai.ChatCompletion.create(
-            model="gpt-3.5-turbo",
+            model="gpt-4",
             messages=[{"role":"user","content":prompt}],
             temperature=0.5
         )

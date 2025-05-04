@@ -284,7 +284,7 @@ def chatbot_view(request):
         try:
             openai.api_key = settings.OPENAI_API_KEY
             response = openai.ChatCompletion.create(
-                model="gpt-3.5-turbo", messages=[{"role": "user", "content": prompt}]
+                model="gpt-4", messages=[{"role": "user", "content": prompt}]
             )
             full_reply = response.choices[0].message.content.strip()
 
