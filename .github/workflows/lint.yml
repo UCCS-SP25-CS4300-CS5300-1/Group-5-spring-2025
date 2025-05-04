@@ -32,8 +32,8 @@ jobs:
       - name: Run Pylint
         run: |
           find . -name "*.py" \
-          -not -path "./migrations/*" \
-          -not -path "./scripts/*"
+            -not -path "./migrations/*" \
+            -not -path "./scripts/*"
           | xargs pylint --rcfile=.pylintrc --exit-zero > pylint-report.txt
 
       #Upload the reports as artifacts
