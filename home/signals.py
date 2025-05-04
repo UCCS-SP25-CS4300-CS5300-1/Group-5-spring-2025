@@ -9,6 +9,6 @@ from .views import UserProfile
 
 # send a signal to create a user profile whenever a user is created
 @receiver(post_save, sender=CampUser)
-def create_user_prof(sender, instance, created, **kwargs):
+def create_user_prof(sender, instance, created, **kwargs): # pylint: disable=unused-argument
     if created:
         UserProfile.objects.create(user=instance)

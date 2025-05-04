@@ -6,26 +6,44 @@
 <!-- Replace block content in base_template.html BEFORE I MESS EVERYTHING UP-->
 {% block content %}
 
+<h2 class="search-results">Results for “{{ query }}”</h2><br>
+
 <div class="results-container">
-    <div class="campsite-list">
 
-{% if campsites %}
-    <h2 class="search-results">Results For {{ query }}</h2>
-    <ul>
+    {% if campsites %}
+  
+      <!-- Scrollable box around all cards -->
+      <div class="cards-scrollbox">
         {% for site in campsites %}
-            <li class="campsite-items">
-                <a href="{% url 'facility_detail' site.FacilityID %}?q={{ request.GET.q }}" style="color: #ff930e">
-                    <strong>{{ site.FacilityName }}</strong> - {{ site.FacilityTypeDescription }}
-                </a>
-            </li>
+            <div class="facility-card">
+                <div class="facility-content">
+                    {% if site.image_url %}
+                        <img src="{{ site.image_url }}"class="facility-img"/>
+                    {% else %}
+                        
+                    {% endif %}
+                    <div class="facility-text">
+                        <!-- Name is now the link -->
+                        <h3 class="facility-name">
+                        <a href="{% url 'facility_detail' site.FacilityID %}?q={{ query }}">
+                            {{ site.FacilityName }}
+                        </a>
+                        </h3>
+                        <p class="facility-type"><strong>Type:</strong> {{ site.FacilityTypeDescription }}</p>
+                        <p class="facility-coords">
+                            <strong>Reservable:</strong>
+                            {{ site.Reservable |yesno:"Yes,No" }}
+                        </p>
+                    </div>
+                </div>
+            </div>
         {% endfor %}
-    </ul>
-{% else %}
-    <p>No results found.</p>
-{% endif %}
-
-</div>
-
+      </div>
+  
+    {% else %}
+      <p>No results found.</p>
+    {% endif %}
+  
  <!-- Display Map -->
  <div class="map-container">
     <div id="map"></div>

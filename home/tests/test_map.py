@@ -29,6 +29,8 @@ class TemplateRenderingTests(TestCase):
         self.assertTemplateUsed(response, "search_results.html")
         # Now we expect to see our unique facility's name in the rendered HTML.
         self.assertContains(response, "UniqueTestCampsite")
+        # Assertion to use facility variable and verify name
+        self.assertContains(response, facility.name)
 
     def test_search_results_template_with_no_campsites(self):
         # Delete all facilities to simulate an empty search result.
