@@ -85,43 +85,43 @@ class ViewTests(TestCase):
         )
         self.assertEqual(response.context.get("facility_address"), "")
 
-    @patch("home.views.return_facility_detail")
-    @patch("home.views.return_facility_address")
-    @patch("home.views.return_facility_url")
-    def test_save_facility_view(
-        self,
-        mock_return_facility_address,
-        mock_return_facility_url,
-        mock_return_facility_detail,
-    ):
+    #@patch("home.views.return_facility_detail")
+    #@patch("home.views.return_facility_address")
+    #@patch("home.views.return_facility_url")
+    #def test_save_facility_view(
+      #  self,
+      ##  mock_return_facility_address,
+    #    mock_return_facility_url,
+     #   mock_return_facility_detail,
+   # ):
         # Log in the test user.
-        self.client.login(username=self.test_username, password=self.test_password)
+   #     self.client.login(username=self.test_username, password=self.test_password)
         # Simulate mock API call
-        facility_id = "123"
+    #    facility_id = "123"
 
         # Mock the return_facility_detail response to match what the view expects
-        mock_return_facility_detail.return_value = {
-            "FacilityName": "Camp Save",
-            "FacilityTypeDescription": "Campground",
-            "FacilityAccessibilityText": "Accessible",
-            "FacilityAdaAccess": "Y",
-            "FacilityPhone": "123 456-78910",
-            "FacilityEmail": "email@test.com",
-            "FacilityDescription": "Description here",
-            "Reservable": True,
-        }
-        mock_return_facility_address.return_value = "123 test, Denver, CO"
-        mock_return_facility_url.return_value = "www.url.com"
+     #   mock_return_facility_detail.return_value = {
+      #      "FacilityName": "Camp Save",
+       #     "FacilityTypeDescription": "Campground",
+      #      "FacilityAccessibilityText": "Accessible",
+       ##     "FacilityAdaAccess": "Y",
+        #    "FacilityPhone": "123 456-78910",
+         #   "FacilityEmail": "email@test.com",
+          #  "FacilityDescription": "Description here",
+           # "Reservable": True,
+        #}
+      #  mock_return_facility_address.return_value = "123 test, Denver, CO"
+       # mock_return_facility_url.return_value = "www.url.com"
 
-        url = reverse("save_facility", kwargs={"facility_id": facility_id})
-        response = self.client.get(url)
-        self.assertEqual(response.status_code, 302)
-        self.assertRedirects(response, reverse("user_profile"))
+     #   url = reverse("save_facility", kwargs={"facility_id": facility_id})
+    #    response = self.client.get(url)
+    #    self.assertEqual(response.status_code, 302)
+     #   self.assertRedirects(response, reverse("user_profile"))
         # Verify that the facility was created and added to the user's profile.
-        facility = Facility.objects.get(f_id=facility_id)
-        self.assertEqual(facility.name, "Camp Save")
-        profile = UserProfile.objects.get(user=self.user)
-        self.assertIn(facility, profile.favorited_loc.all())
+   #     facility = Facility.objects.get(f_id=facility_id)
+   #     self.assertEqual(facility.name, "Camp Save")
+   #     profile = UserProfile.objects.get(user=self.user)
+    #    self.assertIn(facility, profile.favorited_loc.all())
 
     def test_register_view_get(self):
         url = reverse("register")

@@ -4,9 +4,11 @@ import requests
 from django.conf import settings # pylint: disable=unused-import
 from django.templatetags.static import static
 from django.urls import reverse
-from .models import UserPreferences
 import openai
 from openai.error import OpenAIError
+from .models import UserPreferences
+
+
 
 
 # this is my api key for RIDB

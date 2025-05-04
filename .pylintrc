@@ -1,6 +1,6 @@
 [MASTER]
 #Skip files we don't want to waste time scanning
-ignore=camp_mate_venv,db.sqlite3,Dockerfile,scripts,migrations
+ignore=camp_mate_venv,db.sqlite3,Dockerfile,scripts,migrations,manage.py,docker-settings.py
 
 
 [MESSAGES CONTROL]

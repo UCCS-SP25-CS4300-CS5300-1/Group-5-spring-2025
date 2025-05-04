@@ -25,7 +25,7 @@ from home.utils import (
 )
 
 from .forms import CampUserCreationForm, UserPreferenceForm, TripDetailsForm
-from .models import CampUser, UserProfile, TripDetails
+from .models import UserProfile, TripDetails
 from .utils import UserPreferences, MyHTMLCalendar, settings, geocode_location
 
 
