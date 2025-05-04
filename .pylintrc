@@ -1,24 +1,24 @@
 [MASTER]
 #Skip files we don't want to waste time scanning
-ignore=camp_mate_venv,db.sqlite3,Dockerfile
+ignore=camp_mate_venv,db.sqlite3,Dockerfile,scripts
 # This will ignore migrations under "home" since it's in different directory from manage.py
 ignore-patterns=^.*/migrations/.*\.py$
 #Load Django plugin to reudce false positives for Django code
 #load-plugins=pylint_django
 
 #Set the django settings module so pylint understands the project context
-django-settings-module=home.settings
+#django-settings-module=home.settings
 
-[MESSAGES CONTROL]
+#[MESSAGES CONTROL]
 # Disable some Django-related false positives
-disable=
-    missing-module-docstring,      # Don’t require docstrings at the top of every .py file
-    missing-class-docstring,       # Don’t require docstrings on every class
-    missing-function-docstring,    # Don’t require docstrings on every function
-    too-few-public-methods,        # Allow simple classes like Django models/forms
-    no-member,                     # Don’t complain about dynamically added attributes (e.g., request.user.username)
-    too-many-ancestors,            # Don’t flag Django models/forms that inherit from many base classes
-    no-self-use                    # Allow methods that don’t use `self` (common in views)
+#disable=
+ #   missing-module-docstring,      # Don’t require docstrings at the top of every .py file
+  #  missing-class-docstring,       # Don’t require docstrings on every class
+   # missing-function-docstring,    # Don’t require docstrings on every function
+    #too-few-public-methods,        # Allow simple classes like Django models/forms
+ #   no-member,                     # Don’t complain about dynamically added attributes (e.g., request.user.username)
+  #  too-many-ancestors,            # Don’t flag Django models/forms that inherit from many base classes
+  #  no-self-use                    # Allow methods that don’t use `self` (common in views)
 
 [FORMAT]
 max-line-length=100
