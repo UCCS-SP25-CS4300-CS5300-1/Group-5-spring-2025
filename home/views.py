@@ -82,7 +82,7 @@ def facility_detail(request, facility_id):
 
 # function for saving a facility to a users profile
 def save_facility(request, facility_id):
-    user = request.user.campuser            # or however you access CampUser
+    user = request.user            
     defaults = get_facility_defaults(facility_id)
     facility, _ = Facility.objects.update_or_create(
         f_id=facility_id, defaults=defaults
