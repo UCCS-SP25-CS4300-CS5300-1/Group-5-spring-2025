@@ -5,6 +5,8 @@ from django.conf import settings # pylint: disable=unused-import
 from django.templatetags.static import static
 from django.urls import reverse
 from .models import UserPreferences
+import openai
+from openai.error import OpenAIError
 
 
 # this is my api key for RIDB
@@ -325,3 +327,52 @@ hazards = [
 def check_hazards(daily_conditions):
     """Return list of days that match hazardous conditions."""
     return [day for day in daily_conditions if day["condition"] in hazards]
+
+# home/utils.py
+
+def get_facility_defaults(facility_id):
+    data = return_facility_detail(facility_id)
+    # find primary image (or None)
+    media = data.get("MEDIA", [])
+    image_url = next((m["URL"] for m in media if m.get("IsPrimary")), None)
+
+    return {
+        "name": data["FacilityName"],
+        "type": data["FacilityTypeDescription"],
+        "accessibility_txt": data["FacilityAccessibilityText"],
+        "ada_accessibility": data["FacilityAdaAccess"],
+        "phone": data["FacilityPhone"],
+        "email": data["FacilityEmail"],
+        "description": data["FacilityDescription"],
+        "reservable": data["Reservable"],
+        "url":    return_facility_url(facility_id),
+        "location": return_facility_address(facility_id),
+        "latitude":  data.get("FacilityLatitude"),
+        "longitude": data.get("FacilityLongitude"),
+        "image_url": image_url,
+    }
+
+# home/utils.py
+
+def build_packing_prompt(facilities, start, end, num_people):
+    names = ", ".join(f.name for f in facilities)
+    return (
+      f"Generate a packing list for {num_people} people camping at {names}"
+      f" from {start} to {end}. Focus on essentials, include quantities. "
+      "Consider the weather at this time and location. "
+      "Give response in a comma separated list"
+    )
+
+def generate_packing_list(prompt):
+    try:
+        openai.api_key = settings.OPENAI_API_KEY
+        resp = openai.ChatCompletion.create(
+            model="gpt-3.5-turbo",
+            messages=[{"role":"user","content":prompt}],
+            temperature=0.5
+        )
+        items = [i.strip().capitalize()
+                 for i in resp.choices[0].message.content.split(",")]
+        return ", ".join(items)
+    except OpenAIError:
+        return "Tent, sleeping bag, food, water, flashlight"

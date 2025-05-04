@@ -19,6 +19,9 @@ from home.utils import (
     return_facility_detail,
     return_facility_url,
     search_facilities,
+    get_facility_defaults,
+    build_packing_prompt,
+    generate_packing_list,
 )
 
 from .forms import CampUserCreationForm, UserPreferenceForm, TripDetailsForm
@@ -39,10 +42,17 @@ def search_view(request):
     if query:
         lat, lon = geocode_location(query)
         if lat and lon:
-            campsites = search_facilities(lat=lat, lon=lon, user=request.user if apply_filters else None)
+            campsites = search_facilities(
+                lat=lat,
+                lon=lon,
+                user=request.user if apply_filters else None
+            )
         else:
             # fallback: no geocode result, maybe use keyword search
-            campsites = search_facilities(location=query, user=request.user if apply_filters else None)
+            campsites = search_facilities(
+                location=query,
+                user=request.user if apply_filters else None
+            )
 
     return render(
         request,
@@ -72,58 +82,12 @@ def facility_detail(request, facility_id):
 
 # function for saving a facility to a users profile
 def save_facility(request, facility_id):
-    # first, we get the user based on their username
-    # this CampUser model is located in users/models.py; this is where
-    # Im getting the data from
-    user = CampUser.objects.get(username=request.user.username)
-
-    # make API call to get facility (utils.py file)
-    testfacility = return_facility_detail(facility_id)
-    # get facility details from facility data type
-    name = testfacility["FacilityName"]
-    f_type = testfacility["FacilityTypeDescription"]
-    acessibility_txt = testfacility["FacilityAccessibilityText"]
-    ada = testfacility["FacilityAdaAccess"]
-    phone = testfacility["FacilityPhone"]
-    email = testfacility["FacilityEmail"]
-    desc = testfacility["FacilityDescription"]
-    reservable = testfacility["Reservable"]
-    url = return_facility_url(facility_id)
-    location = return_facility_address(facility_id)
-    media = testfacility.get("MEDIA", [])
-    if media:
-        primary = next((m for m in media if m.get("IsPrimary")), media[0])
-        image_url = primary.get("URL")
-    else:
-        image_url = None
-
-
-
-    # create the saved facility (or get it if it already exists in user profile)
+    user = request.user.campuser            # or however you access CampUser
+    defaults = get_facility_defaults(facility_id)
     facility, _ = Facility.objects.update_or_create(
-        f_id=facility_id,
-        defaults={
-            "name": name,
-            "location": location,
-            "type": f_type,
-            "accessibility_txt": acessibility_txt,
-            "ada_accessibility": ada,
-            "phone": phone,
-            "email": email,
-            "description": desc,
-            "reservable": reservable,
-            "url": url,
-            "latitude": testfacility.get("FacilityLatitude"),
-            "longitude": testfacility.get("FacilityLongitude"),
-            "image_url": image_url,
-        },
+        f_id=facility_id, defaults=defaults
     )
-
-    # add this facility to user's favorited_loc attribute
-    # (but really this is an attribute of UserProfile which is an attribute of user... have
-    # to ask Zach more about this... )
     user.userprofile.favorited_loc.add(facility)
-    # redirects to user profile that shows all favorited campsites
     return redirect("user_profile")
 
 
@@ -209,69 +173,36 @@ def delete_facility(request, facility_id):
 
 @login_required
 def create_trip_async(request, facility_id):
-    if request.method == "POST":
-        # list of favorite facilities
-        selected_facility_ids = request.POST.getlist("favorite_facilities")
-        selected_facility = Facility.objects.filter(id__in=selected_facility_ids)
+    if request.method != "POST":
+        return JsonResponse({"success": False, "error": "Invalid request"})
 
-        # fetching the facility ID for the location pressed on user profile
-        if facility_id:
-            facility = get_object_or_404(Facility, id=facility_id)
-            selected_facility = selected_facility | Facility.objects.filter(
-                id=facility.id
-            )
+    # 1. gather facilities (just 2 locals)
+    ids = request.POST.getlist("favorite_facilities")
+    qs  = Facility.objects.filter(id__in=ids)
+    if facility_id:
+        qs |= Facility.objects.filter(id=facility_id)
 
-        form = TripDetailsForm(request.POST)
-        if form.is_valid():
-            start_date = form.cleaned_data["start_date"]
-            end_date = form.cleaned_data["end_date"]
-            number_of_people = form.cleaned_data["number_of_people"]
-
-            facility_names = ", ".join(
-                [facility.name for facility in selected_facility]
-            )
-            prompt = (
-                f"Generate a packing list for {number_of_people} people camping at {facility_names}"
-                f" from {start_date} to {end_date}. Focus on essentials, include quantities. "
-                f"Consider the weather at this time and location. "
-                f"Give response in a comma separated list"
-            )
-
-            try:
-                openai.api_key = settings.OPENAI_API_KEY
-                ai_response = openai.ChatCompletion.create(
-                    model="gpt-3.5-turbo",
-                    messages=[{"role": "user", "content": prompt}],
-                    temperature=0.5,
-                )
-                packing_list = ai_response.choices[0].message.content.strip()
-                items = packing_list.split(",")
-                capitalized_items = [item.strip().capitalize() for item in items]
-                packing_list = ", ".join(capitalized_items)
-            except OpenAIError as e:
-                print("OpenAI API error:", e)  # Log the error for debugging
-                packing_list = "Tent, sleeping bag, food, water, flashlight"  # fallback
-
-            # Create a temporary TripDetails instance
-            trip = TripDetails.objects.create(
-                user=request.user.userprofile,
-                start_date=start_date,
-                end_date=end_date,
-                number_of_people=number_of_people,
-                packing_list=packing_list,
-            )
-
-            # correctly setting the data for a Many to Many field
-            trip.facility.set(selected_facility)
-
-            # Store the trip id in session for preview
-            request.session["trip_preview_id"] = trip.id
-
-            # Return the URL for the trip preview page
-            return redirect("trip_preview")
-
+    # 2. validate form (1 local)
+    form = TripDetailsForm(request.POST)
+    if not form.is_valid():
         return JsonResponse({"success": False, "error": form.errors.as_json()})
-    return JsonResponse({"success": False, "error": "Invalid request"})
+
+    cd = form.cleaned_data
+    prompt = build_packing_prompt(qs, cd["start_date"], cd["end_date"], cd["number_of_people"])
+    packing = generate_packing_list(prompt)
+
+    # 3. create trip (2 locals)
+    trip = TripDetails.objects.create(
+        user=request.user.userprofile,
+        start_date=cd["start_date"],
+        end_date=cd["end_date"],
+        number_of_people=cd["number_of_people"],
+        packing_list=packing,
+    )
+    trip.facility.set(qs)
+    request.session["trip_preview_id"] = trip.id
+
+    return redirect("trip_preview")
 
 
 @login_required

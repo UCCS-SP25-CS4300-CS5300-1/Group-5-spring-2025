@@ -1,8 +1,6 @@
 [MASTER]
 #Skip files we don't want to waste time scanning
 ignore=camp_mate_venv,db.sqlite3,Dockerfile,scripts,migrations
-# This will ignore migrations under "home" since it's in different directory from manage.py
-#ignore-patterns=.*migrations.*
 
 
 [MESSAGES CONTROL]
@@ -13,6 +11,7 @@ disable=
     missing-function-docstring,    # Don’t require docstrings on every function
     too-few-public-methods,        # Allow simple classes like Django models/forms
     no-member,                     # Don’t complain about dynamically added attributes (e.g., request.user.username)
+    too-many-ancestors,            # Allow multiple inheritance (e.g., Django models)
 
 
 [FORMAT]
