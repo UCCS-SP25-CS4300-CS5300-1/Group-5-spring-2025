@@ -12,6 +12,8 @@ disable=
     missing-class-docstring,       # Don’t require docstrings on every class
     missing-function-docstring,    # Don’t require docstrings on every function
     too-few-public-methods,        # Allow simple classes like Django models/forms
+    no-member,                     # Don’t complain about dynamically added attributes (e.g., request.user.username)
+
 
 [FORMAT]
 max-line-length=100
