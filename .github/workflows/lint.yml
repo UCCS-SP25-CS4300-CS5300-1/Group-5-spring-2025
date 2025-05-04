@@ -31,7 +31,7 @@ jobs:
       #Generate text report for pylint, don't fail for style violations, save to file
       - name: Run Pylint
         run: |
-          pylint --exit-zero > pylint-report.txt
+          pylint . --exit-zero > pylint-report.txt
 
       #Upload the reports as artifacts
       - name: Upload Flake8 Report
