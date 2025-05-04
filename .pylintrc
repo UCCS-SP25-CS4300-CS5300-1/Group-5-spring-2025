@@ -2,7 +2,7 @@
 #Skip files we don't want to waste time scanning
 ignore=camp_mate_venv,db.sqlite3,Dockerfile,scripts
 # This will ignore migrations under "home" since it's in different directory from manage.py
-ignore-patterns=^.*/migrations/.*\.py$
+ignore-patterns=.*migrations.*
 
 
 [MESSAGES CONTROL]
