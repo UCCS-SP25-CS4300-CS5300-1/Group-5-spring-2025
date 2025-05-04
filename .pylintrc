@@ -4,7 +4,7 @@ ignore=camp_mate_venv,db.sqlite3,Dockerfile
 # This will ignore migrations under "home" since it's in different directory from manage.py
 ignore-patterns=^.*/migrations/.*\.py$
 #Load Django plugin to reudce false positives for Django code
-load-plugins=pylint_django
+#load-plugins=pylint_django
 
 #Set the django settings module so pylint understands the project context
 django-settings-module=home.settings
