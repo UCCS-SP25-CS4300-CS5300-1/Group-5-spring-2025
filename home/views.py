@@ -284,7 +284,7 @@ def chatbot_view(request):
         try:
             openai.api_key = settings.OPENAI_API_KEY
             response = openai.ChatCompletion.create(
-                model="gpt-3.5-turbo", messages=[{"role": "user", "content": prompt}]
+                model="gpt-4", messages=[{"role": "user", "content": prompt}]
             )
             full_reply = response.choices[0].message.content.strip()
 
@@ -339,11 +339,27 @@ def trip_detail(request, trip_id):
 def trip_detail_pdf(request, trip_id):
     trip = get_object_or_404(TripDetails, id=trip_id)
 
+    facility = trip.facility.first()
+    weather_forecast = []
+    hazards_detected = False
+
+    if facility and facility.latitude and facility.longitude:
+        lat = facility.latitude
+        lon = facility.longitude
+        start_date = trip.start_date.strftime("%Y-%m-%d")
+        end_date   = trip.end_date.strftime("%Y-%m-%d")
+
+        # fetch and test for hazards
+        forecast       = fetch_weather(lat, lon, start_date, end_date)
+        hazards_found  = check_hazards(forecast)
+        hazards_detected = bool(hazards_found)
+        weather_forecast = forecast
+
     packing_items = [i.strip() for i in trip.packing_list.split(",") if i.strip()]
 
     html_string = render_to_string(
         "users/trip_details_pdf.html",
-        {"trip": trip, "user": request.user, "packing_items": packing_items},
+        {"trip": trip, "user": request.user, "packing_items": packing_items, "weather_forecast": weather_forecast, "hazards_detected": hazards_detected},
         request=request,
     )
 

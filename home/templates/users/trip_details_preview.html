@@ -8,10 +8,21 @@
   }
   .inbox {
       width: 100%;
+      max-height: 300px;       /* adjust height as needed */
+      overflow-y: auto;    
       background-color: #f0f0f0; /* Light grey background */
       margin: 0;
       padding: 10px;
   }
+
+  .inbox::-webkit-scrollbar {
+    width: 8px;
+  }
+  .inbox::-webkit-scrollbar-thumb {
+    background-color: rgba(0,0,0,0.2);
+    border-radius: 4px;
+  } 
+  
   .item {
       display: flex;
       align-items: center;
