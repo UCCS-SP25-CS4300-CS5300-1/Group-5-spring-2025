@@ -10,7 +10,7 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/4.2/ref/settings/
 """
 
-#import os
+import os
 import secrets
 from pathlib import Path
 
@@ -33,9 +33,12 @@ STATIC_ROOT = BASE_DIR / "staticfiles"
 
 # SECURITY WARNING: keep the secret key used in production secret!
 
-SECRET_KEY = secrets.token_urlsafe(
-    64
-)  ## Should be imported or generated in a better secrets env
+# SECRET_KEY = secrets.token_urlsafe(
+#     64
+# )  ## Should be imported or generated in a better secrets env
+
+## Pull environment var `DJANGO_SECRET_KEY` or deploy w/ secrets.token_urlsafe
+SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY', secrets.token_urlsafe(64))
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = False
@@ -113,8 +116,12 @@ WSGI_APPLICATION = "camp_mate.wsgi.application"
 
 DATABASES = {
     "default": {
-        "ENGINE": "django.db.backends.sqlite3",
-        "NAME": BASE_DIR / "db.sqlite3",
+        "ENGINE": os.environ.get('DB_ENGINE', 'django.db.backends.sqlite3'),
+        "NAME": os.environ.get('DB_NAME', BASE_DIR / "db.sqlite3"),
+        "USER": os.environ.get('DB_USER', ''),
+        "PASSWORD": os.environ.get('DB_PASSWORD', ''),
+        "HOST": os.environ.get('DB_HOST', ''),
+        "PORT": os.environ.get('DB_PORT',''),
     }
 }
 
