@@ -38,7 +38,7 @@ SECRET_KEY = secrets.token_urlsafe(
 )  ## Should be imported or generated in a better secrets env
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
 ALLOWED_HOSTS = [
     "editor-advsedjango-5.devedu.io",
