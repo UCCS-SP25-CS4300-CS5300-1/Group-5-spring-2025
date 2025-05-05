@@ -338,20 +338,44 @@ def trip_detail(request, trip_id):
 @login_required
 def trip_detail_pdf(request, trip_id):
     trip = get_object_or_404(TripDetails, id=trip_id)
+    packing_items = [
+        item.strip()
+        for item in trip.packing_list.split(",")
+        if item.strip()
+    ]
 
-    packing_items = [i.strip() for i in trip.packing_list.split(",") if i.strip()]
+    facility = trip.facility.first()
+    if facility and facility.latitude and facility.longitude:
+        weather_forecast = fetch_weather(
+            facility.latitude,
+            facility.longitude,
+            trip.start_date.strftime("%Y-%m-%d"),
+            trip.end_date.strftime("%Y-%m-%d"),
+        )
+        hazards_detected = bool(check_hazards(weather_forecast))
+    else:
+        weather_forecast = []
+        hazards_detected = False
 
-    html_string = render_to_string(
-        "users/trip_details_pdf.html",
-        {"trip": trip, "user": request.user, "packing_items": packing_items},
-        request=request,
+    html = HTML(
+        string=render_to_string(
+            "users/trip_details_pdf.html",
+            {
+                "trip": trip,
+                "user": request.user,
+                "packing_items": packing_items,
+                "weather_forecast": weather_forecast,
+                "hazards_detected": hazards_detected,
+            },
+            request=request,
+        ),
+        base_url=request.build_absolute_uri("/"),
     )
-
-    html = HTML(string=html_string, base_url=request.build_absolute_uri("/"))
-    pdf_bytes = html.write_pdf()
-
-    response = HttpResponse(pdf_bytes, content_type="application/pdf")
-    response["Content-Disposition"] = f'attachment; filename="trip_{trip.id}.pdf"'
+    pdf_content = html.write_pdf()
+    response = HttpResponse(pdf_content, content_type="application/pdf")
+    response["Content-Disposition"] = (
+        f'attachment; filename="trip_{trip.id}.pdf"'
+    )
     return response
 
 
