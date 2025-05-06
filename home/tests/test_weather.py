@@ -6,7 +6,7 @@ from home.utils import check_hazards, fetch_weather
 
 
 class WeatherUtilsTests(TestCase):
-
+    """Test suite for weather utility functions."""
     @patch("home.utils.requests.get")
     def test_fetch_weather_returns_forecast(self, mock_get):
         mock_get.return_value.status_code = 200

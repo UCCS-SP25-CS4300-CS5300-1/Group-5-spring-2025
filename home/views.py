@@ -31,10 +31,14 @@ from .utils import UserPreferences, MyHTMLCalendar, settings, geocode_location
 
 # Create your views here.
 def index(request):
+    """Renders the landing page of the application."""
     return render(request, "index.html")
 
 #ABI UPDATED THIS
 def search_view(request):
+    """Processes a location search query and optionally applies user filters.
+    Performs geocoding and returns search results rendered on a map.
+    """
     query = request.GET.get("q")  # location name input
     apply_filters = request.GET.get("applyFilters") == "on"
     campsites = []
@@ -67,6 +71,7 @@ def search_view(request):
 # exp: get facility name: campsite.FacilityName
 # also returns facility address and url
 def facility_detail(request, facility_id):
+    """ Renders the detail page for a specific facility."""
     campsite = return_facility_detail(facility_id)
 
     facility_address = return_facility_address(facility_id)
@@ -82,6 +87,7 @@ def facility_detail(request, facility_id):
 
 # function for saving a facility to a users profile
 def save_facility(request, facility_id):
+    """Saves a facility to the user's profile."""
     user = request.user
     defaults = get_facility_defaults(facility_id)
     facility, _ = Facility.objects.update_or_create(
@@ -94,7 +100,7 @@ def save_facility(request, facility_id):
 # this gets the user creation form for CampUser - uses the form created in forms.py
 # redirects to the root directory upon completion
 def register_view(request):
-
+    """Handles user registration."""
     if request.method == "POST":
         form = CampUserCreationForm(request.POST)
         if form.is_valid():
@@ -109,6 +115,7 @@ def register_view(request):
 # functionality to add amenities will be updated here
 @login_required
 def user_profile(request):
+    """Renders the user's profile page with their favorite locations and preferences."""
     # retrieve the users profile
     prof = UserProfile.objects.get(user=request.user)
 
@@ -135,6 +142,7 @@ def user_profile(request):
 
 # log out the user
 def logout_user(request):
+    """Logs out the user and redirects to the landing page."""
     logout(request)
     # after logging out returns user to landing page
     return redirect("index")
@@ -143,6 +151,7 @@ def logout_user(request):
 # this allows users to edit their user preferences
 @login_required
 def edit_preferences(request):
+    """Allows users to edit their preferences."""
     # get user
     user = request.user
 
@@ -163,6 +172,7 @@ def edit_preferences(request):
 # this allows users to delete a saved facility from their profile
 @login_required
 def delete_facility(request, facility_id):
+    """Deletes a facility from the user's profile."""
     facility = Facility.objects.get(f_id=facility_id)
 
     if request.method == "POST":
@@ -173,6 +183,7 @@ def delete_facility(request, facility_id):
 
 @login_required
 def create_trip_async(request, facility_id):
+    """Creates a trip asynchronously and redirects to the trip preview."""
     if request.method != "POST":
         return JsonResponse({"success": False, "error": "Invalid request"})
 
@@ -207,6 +218,7 @@ def create_trip_async(request, facility_id):
 
 @login_required
 def trip_preview(request):
+    """Renders the trip preview page."""
     # Retrieve the trip preview id from session
     trip_id = request.session.get("trip_preview_id")
     if not trip_id:
@@ -217,6 +229,7 @@ def trip_preview(request):
 
 @login_required
 def confirm_trip(request):
+    """Confirms the trip and saves it to the user's profile."""
     # When the user clicks the "Save Trip" button, confirm the trip.
     # You could perform additional processing here if needed.
     if "trip_preview_id" in request.session:
@@ -227,6 +240,7 @@ def confirm_trip(request):
 
 @login_required
 def cancel_trip(request):
+    """Cancels the trip and deletes it from the user's profile."""
     # When the user clicks "Start Over", delete the temporary trip and clear the session data.
     trip_id = request.session.get("trip_preview_id") or request.GET.get("trip_id")
     if trip_id:
@@ -243,6 +257,7 @@ def cancel_trip(request):
 
 @login_required
 def edit_trip(request, trip_id):
+    """Allows users to edit an existing trip."""
     trip = get_object_or_404(TripDetails, id=trip_id)
 
     if request.method == "POST":
@@ -267,6 +282,7 @@ def edit_trip(request, trip_id):
 
 @csrf_exempt
 def chatbot_view(request):
+    """Handles chatbot interactions for camping trip assistance."""
     if request.method == "POST":
         body = json.loads(request.body)
         user_message = body.get("message", "")
@@ -306,6 +322,7 @@ def chatbot_view(request):
 
 @login_required
 def trip_detail(request, trip_id):
+    """Renders the trip details page."""
     trip = get_object_or_404(TripDetails, id=trip_id)
 
     facility = trip.facility.first()
@@ -337,6 +354,7 @@ def trip_detail(request, trip_id):
 
 @login_required
 def trip_detail_pdf(request, trip_id):
+    """Generates a PDF of the trip details."""
     trip = get_object_or_404(TripDetails, id=trip_id)
     packing_items = [
         item.strip()
@@ -383,6 +401,7 @@ def trip_detail_pdf(request, trip_id):
 # year and month are optional. this is bc user can navigate to next month if desired
 @login_required
 def calendar_view(request, year=None, month=None):
+    """Renders a calendar view for the user's trips."""
     now = datetime.now()
     year = year or now.year
     month = month or now.month

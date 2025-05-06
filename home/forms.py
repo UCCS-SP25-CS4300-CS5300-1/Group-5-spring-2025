@@ -11,12 +11,14 @@ from .models import TripDetails
 
 # custom creation form for use with CampUser
 class CampUserCreationForm(UserCreationForm):
+    """Custom user creation form for the CampUser model."""
     class Meta:
         model = get_user_model()
         fields = ["username", "password1", "password2"]
 
 
 class UserPreferenceForm(ModelForm):
+    """Form for user preferences."""
     class Meta:
         model = UserPreferences
         fields = [
@@ -30,7 +32,7 @@ class UserPreferenceForm(ModelForm):
 
 
 class TripDetailsForm(forms.ModelForm):
-
+    """Form for trip details."""
     facility = forms.ModelMultipleChoiceField(
         queryset=Facility.objects.all(),
         widget=forms.CheckboxSelectMultiple,
