@@ -113,7 +113,7 @@ def _filter_facilities_by_user_preferences(user, facilities):
 
 # returns a single facility based on the id. this is for a facility detail page.
 def return_facility_detail(facility_id):
-
+    """Fetch facility details from RIDB API using facility ID."""
     # get base url based on what we want from api: in this case, facilities/facility_id
     base_url = f"https://ridb.recreation.gov/api/v1//facilities/{facility_id}"
 
@@ -131,7 +131,7 @@ def return_facility_detail(facility_id):
 
 # returns facility address based on facility id as a string. this is for the facility detail page
 def return_facility_address(facility_id):
-
+    """Fetch facility address from RIDB API using facility ID."""
     # get base url based on what we want from api
     base_url = (
         f"https://ridb.recreation.gov/api/v1/facilities/{facility_id}/facilityaddresses"
@@ -167,7 +167,7 @@ def return_facility_address(facility_id):
 # returns facility website url as a string
 # if no url, returns empty string
 def return_facility_url(facility_id):
-
+    """Fetch facility URL from RIDB API using facility ID."""
     # get base url based on what we want from api: in this case, facility id and link
     base_url = f"https://ridb.recreation.gov/api/v1/facilities/{facility_id}/links"
 
@@ -197,6 +197,7 @@ def return_facility_url(facility_id):
 # based off this documentation: https://docs.python.org/3/library/calendar.html
 # orig code found here https://github.com/python/cpython/blob/3.13/Lib/calendar.py
 class MyHTMLCalendar(HTMLCalendar):
+    """Custom HTML calendar class to display trips."""
     def __init__(self, trips, year, month):
         super().__init__()
         self.trips = trips
@@ -333,6 +334,7 @@ def check_hazards(daily_conditions):
 # home/utils.py
 
 def get_facility_defaults(facility_id):
+    """Fetch facility details and return a dictionary with relevant information."""
     data = return_facility_detail(facility_id)
     # find primary image (or None)
     media = data.get("MEDIA", [])
@@ -357,6 +359,7 @@ def get_facility_defaults(facility_id):
 # home/utils.py
 
 def build_packing_prompt(facilities, start, end, num_people):
+    """Generate a prompt for packing list based on facilities and trip details."""
     names = ", ".join(f.name for f in facilities)
     return (
       f"Generate a packing list for {num_people} people camping at {names}"
@@ -366,6 +369,7 @@ def build_packing_prompt(facilities, start, end, num_people):
     )
 
 def generate_packing_list(prompt):
+    """Generate a packing list using OpenAI API."""
     try:
         openai.api_key = settings.OPENAI_API_KEY
         resp = openai.ChatCompletion.create(

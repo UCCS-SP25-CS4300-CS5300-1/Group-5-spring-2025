@@ -5,6 +5,7 @@ from django.db import models
 # Create your models here.
 # *** NEED TO ADD RESERVABLE & URL ATTRIBUTES... MAYBE ALSO INCORPORATE MEDIA TOO ***
 class Facility(models.Model):
+    """Facility model to represent a facility from the RIDB API."""
     name = models.CharField(max_length=255)
     # for now, location will be character field
     # .... address, city, state? from facility RIDB api schema
@@ -44,6 +45,7 @@ class Facility(models.Model):
 
 
 class TripDetails(models.Model):
+    """TripDetails model to represent a trip created by a user."""
     # this is the user that created the trip
 
     user = models.ForeignKey("UserProfile", on_delete=models.CASCADE)
@@ -68,6 +70,7 @@ class TripDetails(models.Model):
 
 # inherited user to add preferences and campsites
 class CampUser(AbstractUser):
+    """Custom user model to represent a user in the system."""
     # just a test for now
     groups = models.ManyToManyField(
         "auth.Group", related_name="campuser_set", blank=True
@@ -93,6 +96,7 @@ class UserProfile(models.Model):
 
 # User preferences
 class UserPreferences(models.Model):
+    """User preferences model to represent a user's amenity preferences."""
     # the related_name param makes it so CampUser model can access user preferences
     user = models.OneToOneField(
         CampUser, on_delete=models.CASCADE, related_name="preferences"
